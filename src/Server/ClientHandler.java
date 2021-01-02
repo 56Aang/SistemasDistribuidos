@@ -50,14 +50,14 @@ public class ClientHandler implements Runnable {
      */
 
     private boolean command(String msg) {
-        String[] args = msg.split(" ");
+        String[] args = msg.split(";");
 
-        switch (args[0].toUpperCase()) {
+        switch (args[0]) {
             case "LOGIN": {
                 commandLogin(msg);
                 break;
             }
-            case "SIGN": {
+            case "REGISTER": {
                 commandSign(msg);
                 break;
             }
@@ -71,9 +71,7 @@ public class ClientHandler implements Runnable {
             }
         }
 
-        boolean result = args[0].equals("EXIT");
-
-        return result;
+        return args[0].equals("EXIT");
     }
 
 
@@ -94,7 +92,7 @@ public class ClientHandler implements Runnable {
      */
 
     private void commandLogin(String msg) {
-        String[] args = msg.split(" ");
+        String[] args = msg.split(";");
         if (this.estado.logIn(args[1], args[2])) {
             this.utilizador = this.estado.getUser(args[1]);
             out.println("GRANTED");
@@ -111,7 +109,8 @@ public class ClientHandler implements Runnable {
      */
 
     private void commandSign(String msg) {
-        String[] args = msg.split(" ");
+        String[] args = msg.split(";");
+        System.out.println(args[1] + args[2]);
         if (this.estado.registerClient(args[1], args[2])) {
             out.println("USER REGISTED");
         } else {
