@@ -1,14 +1,11 @@
 package Client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 
 public class ClientReader implements Runnable{
     Socket cs;
-    BufferedReader in;
+    DataInputStream in;
     ClientStatus status;
 
     public ClientReader(Socket cs, ClientStatus status){
@@ -20,14 +17,22 @@ public class ClientReader implements Runnable{
     public void run() {
         String msg;
         try{
-            InputStream in1;
-            this.in = new BufferedReader(new InputStreamReader(this.cs.getInputStream()));
-            while((msg = this.in.readLine()) != null){
+            this.in = new DataInputStream(new BufferedInputStream(cs.getInputStream()));
+            while(!(msg = this.in.readUTF()).equals("EXIT")){
                 System.out.println(msg);
-
+                if(msg.equals("GRANTED")){
+                    this.status.login();
+                }
+                else if(msg.equals("LOGGED OUT")){
+                    this.status.logout();
+                }
                 if(this.status.getWaiting()){
                     this.status.setWaitingOFF();
                 }
+            }
+            this.status.exited();
+            if(this.status.getWaiting()){
+                this.status.setWaitingOFF();
             }
 
 

@@ -1,7 +1,5 @@
 package Server;
 
-import Server.EstadoPartilhado;
-
 import java.io.*;
 import java.net.Socket;
 
@@ -11,17 +9,17 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable {
     private Socket cs;
-    private PrintWriter out;
-    private BufferedReader in;
-    //    private String active_user;
-    private User utilizador;
+    private DataOutputStream out;
+    private DataInputStream in;
+    private String active_user;
+    //private User utilizador;
     private EstadoPartilhado estado;
 
 
     public ClientHandler(Socket cs, EstadoPartilhado estado) {
         this.cs = cs;
         this.estado = estado;
-        this.utilizador = null;
+        this.active_user = null;
     }
 
     @Override
@@ -29,17 +27,22 @@ public class ClientHandler implements Runnable {
         String msg;
 
         try {
-            out = new PrintWriter(cs.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(cs.getInputStream()));
-            while ((msg = in.readLine()) != null) {
+            out = new DataOutputStream(new BufferedOutputStream(cs.getOutputStream()));
+            in = new DataInputStream(new BufferedInputStream(cs.getInputStream()));
+            while (!(msg = in.readUTF()).equals("EXIT")) {
                 System.out.println(msg);
                 command(msg);
             }
+
+            out.writeUTF("EXIT");
+            out.flush();
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
         System.out.println("sai");
+
+
     }
 
     /**
@@ -49,7 +52,7 @@ public class ClientHandler implements Runnable {
      * @return Valor booleano se a ligação ao servidor tem que ser cortada.
      */
 
-    private boolean command(String msg) {
+    private boolean command(String msg) throws IOException {
         String[] args = msg.split(";");
 
         switch (args[0]) {
@@ -66,7 +69,8 @@ public class ClientHandler implements Runnable {
                 break;
             }
             default: {
-                this.out.println("Erro");
+                this.out.writeUTF("Erro");
+                out.flush();
                 break;
             }
         }
@@ -78,11 +82,12 @@ public class ClientHandler implements Runnable {
     /**
      * Método que inicia o processo de término de uma conexão.
      */
-    private void commandLogout() {
-        if (this.utilizador != null) {
-            this.utilizador = null;
+    private void commandLogout() throws IOException {
+        if (this.active_user != null) {
+            this.active_user = null;
         }
-        out.println("END");
+        out.writeUTF("LOGGED OUT");
+        out.flush();
     }
 
     /**
@@ -91,13 +96,15 @@ public class ClientHandler implements Runnable {
      * @param msg Pedido ao servidor.
      */
 
-    private void commandLogin(String msg) {
+    private void commandLogin(String msg) throws IOException {
         String[] args = msg.split(";");
         if (this.estado.logIn(args[1], args[2])) {
-            this.utilizador = this.estado.getUser(args[1]);
-            out.println("GRANTED");
+            this.active_user = args[1];
+            out.writeUTF("GRANTED");
+            out.flush();
         } else {
-            out.println("DENIED");
+            out.writeUTF("DENIED");
+            out.flush();
         }
     }
 
@@ -108,13 +115,15 @@ public class ClientHandler implements Runnable {
      * @param msg Pedido ao servidor.
      */
 
-    private void commandSign(String msg) {
+    private void commandSign(String msg) throws IOException {
         String[] args = msg.split(";");
         System.out.println(args[1] + args[2]);
         if (this.estado.registerClient(args[1], args[2])) {
-            out.println("USER REGISTED");
+            out.writeUTF("USER REGISTED");
+            out.flush();
         } else {
-            out.println("USER ALREADY REGISTED");
+            out.writeUTF("USER ALREADY REGISTED");
+            out.flush();
         }
     }
 }

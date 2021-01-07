@@ -3,10 +3,12 @@ package Client;
 public class ClientStatus {
     private boolean login;
     private boolean waitingForResponse;
+    private boolean exited;
 
     public ClientStatus(){
         this.login = false;
         this.waitingForResponse = false;
+        this.exited = false;
     }
 
     public synchronized void login(){
@@ -32,6 +34,14 @@ public class ClientStatus {
         this.waitingForResponse = true;
         while(this.waitingForResponse)
             wait();
+    }
+
+    public synchronized void exited(){
+        this.exited = true;
+    }
+
+    public synchronized boolean isExited(){
+        return this.exited;
     }
 
 }

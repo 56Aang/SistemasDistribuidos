@@ -1,5 +1,7 @@
 package Client;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -9,7 +11,7 @@ public class ClientDrawer implements Runnable {
     private int menu_status;
     private Socket cs;
     private ClientStatus status;
-    private PrintWriter out;
+    private DataOutputStream out;
 
     public ClientDrawer(Socket cs, ClientStatus status) {
         menu_status = 0;
@@ -25,7 +27,7 @@ public class ClientDrawer implements Runnable {
                 break;
             }
             case 1: {
-                System.out.println(" | 4 - Sair");
+                System.out.println(" | 0 - Sair");
                 break;
             }
         }
@@ -52,10 +54,10 @@ public class ClientDrawer implements Runnable {
         int option = this.readOpt();
 
         switch (option) {
-            case 0: {
-                server_request("LOGOUT");
+            case 0:
+                server_request("EXIT");
                 break;
-            }
+
             case 1:
                 menu_one_login();
                 break;
@@ -70,10 +72,13 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_output() throws IOException, InterruptedException {
+    public void menu_two_output() throws IOException, InterruptedException { // LOGGED IN
         int option = this.readOpt();
 
         switch (option) {
+            case 0:
+                server_request("EXIT");
+                break;
             case 1:
                 break;
             case 2:
@@ -90,9 +95,9 @@ public class ClientDrawer implements Runnable {
         String username, password;
         Scanner is = new Scanner(System.in);
 
-        System.out.println("Username:");
+        System.out.print("Username:");
         username = is.nextLine();
-        System.out.println("Password:");
+        System.out.print("Password:");
         password = is.nextLine();
 
         String result = String.join(";", "LOGIN", username, password);
@@ -109,9 +114,9 @@ public class ClientDrawer implements Runnable {
         String username, password;
         Scanner is = new Scanner(System.in);
 
-        System.out.println("Username:");
+        System.out.print("Username:");
         username = is.nextLine();
-        System.out.println("Password:");
+        System.out.print("Password:");
         password = is.nextLine();
 
         String result = String.join(";", "REGISTER", username, password);
@@ -121,7 +126,8 @@ public class ClientDrawer implements Runnable {
     }
 
     public void server_request(String msg) throws IOException, InterruptedException {
-        this.out.println(msg);
+        this.out.writeUTF(msg);
+        this.out.flush();
         this.status.waitForResponse();
     }
 
@@ -147,11 +153,13 @@ public class ClientDrawer implements Runnable {
 
     public void run() {
         try {
-            this.out = new PrintWriter(cs.getOutputStream(), true);
-            while (!this.status.getLogin()) {
+            this.out = new DataOutputStream(new BufferedOutputStream(cs.getOutputStream()));
+
+            while (!this.status.isExited()) {
                 menu_draw();
                 read_menu_output();
             }
+            System.out.println("Exiting ...");
         } catch (IOException | InterruptedException e) {
             System.out.println("error");
             e.printStackTrace();
