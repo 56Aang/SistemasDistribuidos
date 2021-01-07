@@ -28,6 +28,11 @@ public class User {
         this.isInfected = false;
     }
 
+    public void moveTo(int x, int y){
+        this.pos_x = x;
+        this.pos_y = y;
+    }
+
     public String getPassword(){
         return this.password;
     }

@@ -56,18 +56,31 @@ public class ClientHandler implements Runnable {
         String[] args = msg.split(";");
 
         switch (args[0]) {
-            case "LOGIN": {
+            case "LOGIN":
                 commandLogin(msg);
                 break;
-            }
-            case "REGISTER": {
+
+            case "REGISTER":
                 commandSign(msg);
                 break;
-            }
-            case "LOGOUT": {
+
+            case "LOGOUT":
                 commandLogout();
                 break;
-            }
+
+            case "WRITEMAP":
+                out.writeUTF(this.estado.writeMap());
+                out.flush();
+                break;
+            case "CHANGEZONE":
+                commandChangeZone(msg);
+                break;
+            case "CONSULTMAP":
+                commandConsultMap();
+                break;
+            case "INFORMSTATE":
+                commandInformState(msg);
+                break;
             default: {
                 this.out.writeUTF("Erro");
                 out.flush();
@@ -108,6 +121,23 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void commandChangeZone(String msg) throws IOException {
+        String[] args = msg.split(";");
+        if(this.estado.changeZone(this.active_user, args[1].charAt(0))){
+            out.writeUTF("UPDATED SUCCESSFULLY");
+            out.flush();
+        }
+        else {
+            out.writeUTF("WRONG ZONE");
+            out.flush();
+        }
+    }
+
+    private void commandConsultMap() throws IOException {
+        out.writeUTF(this.estado.mapConsult());
+        out.flush();
+    }
+
 
     /**
      * Método reponsável por registar um utilizador.
@@ -118,13 +148,33 @@ public class ClientHandler implements Runnable {
     private void commandSign(String msg) throws IOException {
         String[] args = msg.split(";");
         System.out.println(args[1] + args[2]);
-        if (this.estado.registerClient(args[1], args[2])) {
-            out.writeUTF("USER REGISTED");
+        if (this.estado.registerClient(args[1], args[2], args[3].charAt(0))) {
+            out.writeUTF("USER REGISTERED");
             out.flush();
         } else {
-            out.writeUTF("USER ALREADY REGISTED");
+            out.writeUTF("USER ALREADY REGISTERED");
             out.flush();
         }
     }
+
+    private void commandInformState(String msg) throws IOException {
+        String[] args = msg.split(";");
+        System.out.println(args[1]);
+        boolean state;
+        if(args[1].equals("TRUE"))
+            state = true;
+        else state = false;
+        this.estado.setInfected(active_user,state);
+        if(state) {
+            out.writeUTF("USER INFECTED");
+            out.flush();
+        }
+        else{
+            out.writeUTF("USER NOT INFECTED");
+            out.flush();
+        }
+
+    }
+
 }
 

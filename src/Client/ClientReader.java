@@ -26,6 +26,12 @@ public class ClientReader implements Runnable{
                 else if(msg.equals("LOGGED OUT")){
                     this.status.logout();
                 }
+                else if(msg.equals("USER INFECTED")){
+                    this.status.setInfected(true);
+                }
+                else if (msg.equals("USER NOT INFECTED")){
+                    this.status.setInfected(false);
+                }
                 if(this.status.getWaiting()){
                     this.status.setWaitingOFF();
                 }

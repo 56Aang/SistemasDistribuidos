@@ -4,11 +4,13 @@ public class ClientStatus {
     private boolean login;
     private boolean waitingForResponse;
     private boolean exited;
+    private boolean isInfected;
 
     public ClientStatus(){
         this.login = false;
         this.waitingForResponse = false;
         this.exited = false;
+        this.isInfected = false;
     }
 
     public synchronized void login(){
@@ -44,4 +46,11 @@ public class ClientStatus {
         return this.exited;
     }
 
+    public void setInfected(boolean state){
+        this.isInfected = state;
+    }
+
+    public boolean getState(){
+        return this.isInfected;
+    }
 }
