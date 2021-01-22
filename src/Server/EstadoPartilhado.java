@@ -17,9 +17,11 @@ public class EstadoPartilhado {
     private Map<String, User> users;
     private int[][] mapa;
     private NotificationHandler nh;
+    private Map<Character, List<String>> usersNotify;
 
 
     public EstadoPartilhado() {
+        this.usersNotify = new HashMap<>();
         this.users = new HashMap<>();
         this.mapa = new int[5][5];
         for (int i = 0; i < 5; i++) {
@@ -30,6 +32,7 @@ public class EstadoPartilhado {
     }
 
     public EstadoPartilhado(NotificationHandler nh) {
+        this.usersNotify = new HashMap<>();
         this.users = new HashMap<>();
         this.mapa = new int[5][5];
         this.nh = nh;
@@ -69,7 +72,7 @@ public class EstadoPartilhado {
         }
     }
 
-    public boolean changeZone(String user, char toWhere) {
+    public String changeZone(String user, char toWhere) throws IOException {
         try {
             wl.lock();
 
@@ -81,16 +84,16 @@ public class EstadoPartilhado {
                 //int i = (toWhere - 'A') / n;
                 int j = getZonaY(toWhere);
                 //int j = (toWhere - 'A') % n;
-                if (i >= n || j >= n || (xinit == i && yinit == j)) return false;
+                if (i >= n || j >= n || (xinit == i && yinit == j)) return "false";
                 this.users.get(user).moveTo(i, j);
-                this.mapa[xinit][yinit]--;
                 atualizaUsers(i, j, user);
+                if (--this.mapa[xinit][yinit] == 0)
+                    return Character.toString('A' + n * xinit + yinit);
 
-
-                return true;
+                return "true";
             }
             System.out.println("ups");
-            return false;
+            return "false";
 
         } finally {
             wl.unlock();
@@ -116,11 +119,12 @@ public class EstadoPartilhado {
 
     }
 
-    public Boolean validaLogin(String user, String password) {
+    public boolean isZoneValid(char zone) {
+        rl.lock();
         try {
-            rl.lock();
-            return this.users.get(user).getPassword().equals(password);
-
+            int x = getZonaX(zone);
+            int y = getZonaY(zone);
+            return (x >= 0 && y >= 0 && x < this.mapa.length && y < this.mapa.length);
         } finally {
             rl.unlock();
         }
@@ -175,7 +179,7 @@ public class EstadoPartilhado {
     public boolean registerClient(String user, String pw, char zona) {
         try {
             wl.lock();
-            if (!this.users.containsKey(user)) {
+            if (!this.users.containsKey(user) && isZoneValid(zona)) {
                 int x = getZonaX(zona);
                 int y = getZonaY(zona);
                 if (x == -1 || y == -1) return false;
@@ -192,13 +196,18 @@ public class EstadoPartilhado {
     }
 
     private void atualizaUsers(int x, int y, String user) {
-        this.mapa[x][y]++;
+        wl.lock();
+        try {
+            this.mapa[x][y]++;
 
-        for (User u : this.users.values()) {
-            if (u.getX() == x && u.getY() == y && !u.getUser().equals(user)) { // estão na mesma zona
-                this.users.get(user).addRecent(u.getUser()); // vvv
-                this.users.get(u.getUser()).addRecent(user); // update nos 2
+            for (User u : this.users.values()) {
+                if (u.getX() == x && u.getY() == y && !u.getUser().equals(user)) { // estão na mesma zona
+                    this.users.get(user).addRecent(u.getUser()); // vvv
+                    this.users.get(u.getUser()).addRecent(user); // update nos 2
+                }
             }
+        } finally {
+            wl.unlock();
         }
     }
 
@@ -216,13 +225,12 @@ public class EstadoPartilhado {
         wl.lock();
         try {
             List<String> pInfected = this.users.get(user).getRecentlyWith();
-            List<String> usersNotLogged = new ArrayList<>();
-            usersNotLogged = this.nh.alertInfected(pInfected);
+            List<String> usersNotLogged = this.nh.alertInfected(pInfected);
             this.users.get(user).clearRecentlyWith();
-            for(String s : pInfected){
+            for (String s : pInfected) {
                 this.users.get(s).removeRecentlyWith(user);
             }
-            for(String s : usersNotLogged){
+            for (String s : usersNotLogged) {
                 this.users.get(s).addMsg("YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
             }
         } finally {
@@ -230,12 +238,55 @@ public class EstadoPartilhado {
         }
     }
 
-    public void addNewHandler(String user, Socket s){
-        this.nh.addClient(user,s);
+    public void notificaVaga(char local) throws IOException {
+        rl.lock();
+        try {
+            if(this.usersNotify.containsKey(local)) {
+                this.nh.alertFreeZone(new ArrayList<>(this.usersNotify.get(local)),local);
+            }
+        }finally {
+            rl.unlock();
+        }
+
     }
 
-    public void removeHandler(String user){
-        this.nh.removeClient(user);
+    //public void warnLoggedOutUsers(List<String> users){
+    //    for(String s : this.users.keySet()){
+    //        if(!users.contains(s)){ // warn
+    //            this.users.get(s).addMsg("");
+    //        }
+    //    }
+    //}
+
+    public void addNewHandler(String user, Socket s) {
+        wl.lock();
+        try {
+        this.nh.addClient(user, s);
+        }finally {
+            wl.unlock();
+        }
+    }
+
+    public void removeHandler(String user) {
+        wl.lock();
+        try {
+            this.nh.removeClient(user);
+        }finally {
+            wl.unlock();
+        }
+    }
+
+    public boolean addNotifyUser(String user, char zone) {
+        wl.lock();
+        try {
+            if (!isZoneValid(zone)) return false;
+            this.usersNotify.putIfAbsent(zone,new ArrayList<>());
+            this.usersNotify.get(zone).add(user);
+            return true;
+        } finally {
+            wl.unlock();
+        }
+
     }
 
 }

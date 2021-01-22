@@ -83,6 +83,9 @@ public class ClientHandler implements Runnable {
             case "SERVER":
                 commandServerNotify(msg);
                 break;
+            case "CONSULTZONE":
+                commandConsultZone(msg);
+                break;
             default: {
                 this.out.writeUTF("Erro");
                 out.flush();
@@ -143,12 +146,17 @@ public class ClientHandler implements Runnable {
 
     private void commandChangeZone(String msg) throws IOException {
         String[] args = msg.split(";");
-        if (this.estado.changeZone(this.active_user, args[1].charAt(0))) {
+        String ret;
+        if ((ret = this.estado.changeZone(this.active_user, args[1].charAt(0))).equals("true")) {
             out.writeUTF("UPDATED SUCCESSFULLY");
             out.flush();
-        } else {
+        } else if(ret.equals("false")){
             out.writeUTF("WRONG ZONE");
             out.flush();
+        }else {
+            out.writeUTF("UPDATED SUCCESSFULLY");
+            out.flush();
+            this.estado.notificaVaga(ret.charAt(0));
         }
     }
 
@@ -200,6 +208,21 @@ public class ClientHandler implements Runnable {
         System.out.println(args[1]);
         if(args[1].equals("RISK-INFECTED")){
             out.writeUTF("YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
+            out.flush();
+        }
+    }
+
+    private void commandConsultZone(String msg) throws IOException {
+        String[] args = msg.split(";");
+        System.out.println(msg);
+        char zone = args[1].charAt(0);
+        if(this.estado.addNotifyUser(this.active_user,zone)){
+            String output = "YOU WILL RECEIVE NOTIFICATION WHEN ZONE " +  zone + " IS EMPTY";
+            out.writeUTF(output);
+            out.flush();
+        }
+        else {
+            out.writeUTF("INVALID ZONE");
             out.flush();
         }
     }

@@ -27,7 +27,7 @@ public class ClientDrawer implements Runnable {
                 break;
 
             case 1: // está logged
-                System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n0 - Logout");
+                System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n4 - Consultar Localização\n0 - Logout");
                 break;
 
             case 2: // está infetado
@@ -74,7 +74,7 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_output(){ // LOGGED IN
+    public void menu_two_output() { // LOGGED IN
         int option = this.readOpt();
 
         switch (option) {
@@ -90,6 +90,9 @@ public class ClientDrawer implements Runnable {
             case 3:
                 menu_two_covidState();
                 break;
+            case 4:
+                menu_two_zoneConsult();
+                break;
             default: {
                 System.out.println("Por favor insira um número das opeções dadas");
                 menu_two_output();
@@ -97,7 +100,7 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_three_output(){
+    public void menu_three_output() {
         int option = this.readOpt();
 
         switch (option) {
@@ -149,7 +152,7 @@ public class ClientDrawer implements Runnable {
 
     }
 
-    public void menu_two_logout(){
+    public void menu_two_logout() {
         try {
             server_request("LOGOUT");
             this.menu_status = 0;
@@ -158,8 +161,8 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_update(){
-        try{
+    public void menu_two_update() {
+        try {
             server_request("WRITEMAP");
             Scanner is = new Scanner(System.in);
             System.out.print("Zona: ");
@@ -172,7 +175,7 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_consulta(){
+    public void menu_two_consulta() {
         try {
             server_request("CONSULTMAP");
         } catch (InterruptedException | IOException e) {
@@ -180,26 +183,37 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_covidState(){
-        try{
+    public void menu_two_covidState() {
+        try {
             Scanner is = new Scanner(System.in);
             System.out.println("Está infetado? (S/N)");
             String inp = is.nextLine().toUpperCase();
             String state;
-            if(inp.equals("S")){
+            if (inp.equals("S")) {
                 state = "TRUE";
-            }
-            else{
+            } else {
                 state = "FALSE";
             }
-            String result = String.join(";","INFORMSTATE",state);
+            String result = String.join(";", "INFORMSTATE", state);
             this.server_request(result);
 
-            if(this.status.getState()){
+            if (this.status.getState()) {
                 this.menu_status = 2;
-            }
-            else this.menu_status = 1;
+            } else this.menu_status = 1;
 
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void menu_two_zoneConsult(){
+        try {
+            server_request("WRITEMAP");
+            Scanner is = new Scanner(System.in);
+            System.out.print("Zona: ");
+            String loc = is.nextLine().toUpperCase();
+            String result = String.join(";", "CONSULTZONE", loc);
+            server_request(result);
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
@@ -237,10 +251,9 @@ public class ClientDrawer implements Runnable {
             this.out = new DataOutputStream(new BufferedOutputStream(cs.getOutputStream()));
 
             while (!this.status.isExited()) {
-                if(this.status.getLogin() && this.status.getState()){
+                if (this.status.getLogin() && this.status.getState()) {
                     this.menu_status = 2;
-                }
-                else if (this.status.getLogin())
+                } else if (this.status.getLogin())
                     this.menu_status = 1;
                 menu_draw();
                 read_menu_output();
