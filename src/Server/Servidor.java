@@ -10,7 +10,9 @@ public class Servidor {
 
     public static void main (String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(12345);
-        EstadoPartilhado estado = new EstadoPartilhado();
+        NotificationHandler nh = new NotificationHandler();
+        EstadoPartilhado estado = new EstadoPartilhado(nh);
+
 
         while(true){
             Socket socket = serverSocket.accept();

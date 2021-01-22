@@ -15,7 +15,6 @@ public class ClientHandler implements Runnable {
     //private User utilizador;
     private EstadoPartilhado estado;
 
-
     public ClientHandler(Socket cs, EstadoPartilhado estado) {
         this.cs = cs;
         this.estado = estado;
@@ -81,6 +80,9 @@ public class ClientHandler implements Runnable {
             case "INFORMSTATE":
                 commandInformState(msg);
                 break;
+            case "SERVER":
+                commandServerNotify(msg);
+                break;
             default: {
                 this.out.writeUTF("Erro");
                 out.flush();
@@ -97,6 +99,7 @@ public class ClientHandler implements Runnable {
      */
     private void commandLogout() throws IOException {
         if (this.active_user != null) {
+            this.estado.removeHandler(active_user);
             this.active_user = null;
         }
         out.writeUTF("LOGGED OUT");
@@ -113,8 +116,25 @@ public class ClientHandler implements Runnable {
         String[] args = msg.split(";");
         if (this.estado.logIn(args[1], args[2])) {
             this.active_user = args[1];
-            out.writeUTF("GRANTED");
-            out.flush();
+            this.estado.addNewHandler(active_user, cs); // adicionar socket
+            if(this.estado.getUser(active_user).hasMsgs()) {
+                out.writeUTF("GRANTED;MSG");
+                out.flush();
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("YOU HAVE NOTIFICATIONS PENDING:");
+                for(String s : this.estado.getUser(active_user).getMsgs()){
+                    sb.append('\n').append(s);
+                }
+                out.writeUTF(sb.toString());
+                out.flush();
+            }
+            else{
+                out.writeUTF("GRANTED");
+                out.flush();
+            }
+
+
         } else {
             out.writeUTF("DENIED");
             out.flush();
@@ -123,11 +143,10 @@ public class ClientHandler implements Runnable {
 
     private void commandChangeZone(String msg) throws IOException {
         String[] args = msg.split(";");
-        if(this.estado.changeZone(this.active_user, args[1].charAt(0))){
+        if (this.estado.changeZone(this.active_user, args[1].charAt(0))) {
             out.writeUTF("UPDATED SUCCESSFULLY");
             out.flush();
-        }
-        else {
+        } else {
             out.writeUTF("WRONG ZONE");
             out.flush();
         }
@@ -161,19 +180,28 @@ public class ClientHandler implements Runnable {
         String[] args = msg.split(";");
         System.out.println(args[1]);
         boolean state;
-        if(args[1].equals("TRUE"))
+        if (args[1].equals("TRUE")) {
             state = true;
-        else state = false;
-        this.estado.setInfected(active_user,state);
-        if(state) {
+        } else state = false;
+        this.estado.setInfected(active_user, state);
+        if (state) {
+            estado.notificaInfecao(this.active_user);
             out.writeUTF("USER INFECTED");
             out.flush();
-        }
-        else{
+        } else {
             out.writeUTF("USER NOT INFECTED");
             out.flush();
         }
 
+    }
+
+    private void commandServerNotify(String msg) throws IOException{
+        String[] args = msg.split(";");
+        System.out.println(args[1]);
+        if(args[1].equals("RISK-INFECTED")){
+            out.writeUTF("YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
+            out.flush();
+        }
     }
 
 }
