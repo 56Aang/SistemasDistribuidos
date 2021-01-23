@@ -35,11 +35,11 @@ public class HistoricParser {
                 if (args[0].equals(user)) {
                     if(toDelete) args[1] = "";
                     exists = true;
-                    if (!args[1].contains(Character.toString(zone)))
+                    if (!args[1].contains(Character.toString(zone))) // se mudou a zona
                         line = String.join(";", args[0], args[1] + zone, Boolean.toString(isInfected));
-                    else if (!args[2].equals(Boolean.toString(isInfected)))
+                    else if (!args[2].equals(Boolean.toString(isInfected))) // se só mudou o estado
                         line = String.join(";", args[0], args[1], Boolean.toString(isInfected));
-                    else return;
+                    else return; // não mudou nada
                 }
                 inputBuffer.append(line);
                 inputBuffer.append('\n');
