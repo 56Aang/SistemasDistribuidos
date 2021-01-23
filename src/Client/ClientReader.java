@@ -16,26 +16,26 @@ public class ClientReader implements Runnable{
     @Override
     public void run() {
         String msg;
+        String[] args;
         boolean msgs = false;
         try{
             this.in = new DataInputStream(new BufferedInputStream(cs.getInputStream()));
-            while(!(msg = this.in.readUTF()).equals("EXIT")){
-                if(msg.equals("GRANTED")){
+            while(!(args = (msg = this.in.readUTF()).split(";"))[0].equals("EXIT")){
+                if(args[0].equals("GRANTED")){
                     this.status.login();
+                    this.status.setInfected(args[1].equals("TRUE")); // se vier a true, infected <- true
+                    msgs = args[2].equals("TRUE");
                 }
-                else if(msg.equals("LOGGED OUT")){
+                else if(args[0].equals("LOGGED OUT")){
                     this.status.logout();
                 }
-                else if(msg.equals("USER INFECTED")){
+                else if(args[0].equals("USER INFECTED")){
                     this.status.setInfected(true);
                 }
-                else if (msg.equals("USER NOT INFECTED")){
+                else if (args[0].equals("USER NOT INFECTED")){
                     this.status.setInfected(false);
                 }
-                else if(msg.equals("GRANTED;MSG")){
-                    this.status.login();
-                    msgs = true;
-                }
+
                 if(this.status.getWaiting() && msgs){
                     String[] aux = msg.split(";");
                     System.out.println(aux[0]);

@@ -143,8 +143,13 @@ public class ClientDrawer implements Runnable {
         username = is.nextLine();
         System.out.print("Password: ");
         password = is.nextLine();
+        //while (password.isEmpty()){
+        //    System.out.println("Password inválida");
+        //    System.out.print("Password: ");
+        //    password = is.nextLine();
+        //}
         server_request("WRITEMAP");
-        System.out.println("Zona: ");
+        System.out.print("Zona: ");
         zona = is.nextLine().toUpperCase();
 
         String result = String.join(";", "REGISTER", username, password, zona);

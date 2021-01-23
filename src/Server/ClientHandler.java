@@ -1,5 +1,7 @@
 package Server;
 
+import Exceptions.BadZoneException;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -120,20 +122,22 @@ public class ClientHandler implements Runnable {
         if (this.estado.logIn(args[1], args[2])) {
             this.active_user = args[1];
             this.estado.addNewHandler(active_user, cs); // adicionar socket
-            if(this.estado.getUser(active_user).hasMsgs()) {
-                out.writeUTF("GRANTED;MSG");
+
+            String state = this.estado.getUser(active_user).isInfected() ? "TRUE" : "FALSE";
+
+            if (this.estado.getUser(active_user).hasMsgs()) {
+                out.writeUTF("GRANTED;" + state + ";TRUE");
                 out.flush();
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("YOU HAVE NOTIFICATIONS PENDING:");
-                for(String s : this.estado.getUser(active_user).getMsgs()){
+                for (String s : this.estado.getUser(active_user).getMsgs()) {
                     sb.append('\n').append(s);
                 }
                 out.writeUTF(sb.toString());
                 out.flush();
-            }
-            else{
-                out.writeUTF("GRANTED");
+            } else {
+                out.writeUTF("GRANTED;" + state + ";FALSE");
                 out.flush();
             }
 
@@ -147,16 +151,21 @@ public class ClientHandler implements Runnable {
     private void commandChangeZone(String msg) throws IOException {
         String[] args = msg.split(";");
         String ret;
-        if ((ret = this.estado.changeZone(this.active_user, args[1].charAt(0))).equals("true")) {
-            out.writeUTF("UPDATED SUCCESSFULLY");
+        try {
+            if ((ret = this.estado.changeZone(this.active_user, args[1].charAt(0))).equals("true")) {
+                out.writeUTF("UPDATED SUCCESSFULLY");
+                out.flush();
+            } else if (ret.equals("false")) {
+                out.writeUTF("WRONG ZONE");
+                out.flush();
+            } else {
+                out.writeUTF("UPDATED SUCCESSFULLY");
+                out.flush();
+                this.estado.notificaVaga(ret.charAt(0));
+            }
+        } catch (BadZoneException e) {
+            out.writeUTF("BAD ZONE");
             out.flush();
-        } else if(ret.equals("false")){
-            out.writeUTF("WRONG ZONE");
-            out.flush();
-        }else {
-            out.writeUTF("UPDATED SUCCESSFULLY");
-            out.flush();
-            this.estado.notificaVaga(ret.charAt(0));
         }
     }
 
@@ -175,11 +184,15 @@ public class ClientHandler implements Runnable {
     private void commandSign(String msg) throws IOException {
         String[] args = msg.split(";");
         System.out.println(args[1] + args[2]);
-        if (this.estado.registerClient(args[1], args[2], args[3].charAt(0))) {
-            out.writeUTF("USER REGISTERED");
+        try {
+            if (this.estado.registerClient(args[1], args[2], args[3])) {
+                out.writeUTF("USER REGISTERED");
+            } else {
+                out.writeUTF("USER ALREADY REGISTERED");
+            }
             out.flush();
-        } else {
-            out.writeUTF("USER ALREADY REGISTERED");
+        } catch (BadZoneException e) {
+            out.writeUTF("COULDN'T REGISTER: WRONG ZONE");
             out.flush();
         }
     }
@@ -188,25 +201,24 @@ public class ClientHandler implements Runnable {
         String[] args = msg.split(";");
         System.out.println(args[1]);
         boolean state;
-        if (args[1].equals("TRUE")) {
-            state = true;
-        } else state = false;
+
+        state = args[1].equals("TRUE");
+
         this.estado.setInfected(active_user, state);
         if (state) {
             estado.notificaInfecao(this.active_user);
             out.writeUTF("USER INFECTED");
-            out.flush();
         } else {
             out.writeUTF("USER NOT INFECTED");
-            out.flush();
         }
+        out.flush();
 
     }
 
-    private void commandServerNotify(String msg) throws IOException{
+    private void commandServerNotify(String msg) throws IOException {
         String[] args = msg.split(";");
         System.out.println(args[1]);
-        if(args[1].equals("RISK-INFECTED")){
+        if (args[1].equals("RISK-INFECTED")) {
             out.writeUTF("YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
             out.flush();
         }
@@ -216,12 +228,11 @@ public class ClientHandler implements Runnable {
         String[] args = msg.split(";");
         System.out.println(msg);
         char zone = args[1].charAt(0);
-        if(this.estado.addNotifyUser(this.active_user,zone)){
-            String output = "YOU WILL RECEIVE NOTIFICATION WHEN ZONE " +  zone + " IS EMPTY";
+        if (this.estado.addNotifyUser(this.active_user, zone)) {
+            String output = "YOU WILL RECEIVE NOTIFICATION WHEN ZONE " + zone + " IS EMPTY";
             out.writeUTF(output);
             out.flush();
-        }
-        else {
+        } else {
             out.writeUTF("INVALID ZONE");
             out.flush();
         }

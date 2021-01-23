@@ -1,5 +1,7 @@
 package Server;
 
+import Exceptions.BadZoneException;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -72,7 +74,7 @@ public class EstadoPartilhado {
         }
     }
 
-    public String changeZone(String user, char toWhere) throws IOException {
+    public String changeZone(String user, char toWhere) throws BadZoneException {
         try {
             wl.lock();
 
@@ -84,7 +86,7 @@ public class EstadoPartilhado {
                 //int i = (toWhere - 'A') / n;
                 int j = getZonaY(toWhere);
                 //int j = (toWhere - 'A') % n;
-                if (i >= n || j >= n || (xinit == i && yinit == j)) return "false";
+                if (i >= n || j >= n || i < 0 || j > 0 || (xinit == i && yinit == j)) throw new BadZoneException();
                 this.users.get(user).moveTo(i, j);
                 atualizaUsers(i, j, user);
                 if (--this.mapa[xinit][yinit] == 0)
@@ -124,7 +126,7 @@ public class EstadoPartilhado {
         try {
             int x = getZonaX(zone);
             int y = getZonaY(zone);
-            return (x >= 0 && y >= 0 && x < this.mapa.length && y < this.mapa.length);
+            return !(x < 0 || y < 0 || x >= this.mapa.length || y >= this.mapa.length);
         } finally {
             rl.unlock();
         }
@@ -142,10 +144,7 @@ public class EstadoPartilhado {
     public boolean logIn(String user, String pw) {
         try {
             rl.lock();
-            if (this.users.containsKey(user) && this.users.get(user).authenticate(pw)) {
-                return true;
-            }
-            return false;
+            return this.users.containsKey(user) && this.users.get(user).authenticate(pw);
         } finally {
             rl.unlock();
         }
@@ -173,19 +172,19 @@ public class EstadoPartilhado {
      *
      * @param user String com o nome do utilizador.
      * @param pw   String com a password do utilizador.
-     * @return
+     * @return boolean
      */
 
-    public boolean registerClient(String user, String pw, char zona) {
+    public boolean registerClient(String user, String pw, String zona) throws BadZoneException {
         try {
             wl.lock();
-            if (!this.users.containsKey(user) && isZoneValid(zona)) {
-                int x = getZonaX(zona);
-                int y = getZonaY(zona);
+            if (!this.users.containsKey(user)) {
+                if(zona.isEmpty() || !isZoneValid(zona.charAt(0))) throw new BadZoneException();
+                int x = getZonaX(zona.charAt(0));
+                int y = getZonaY(zona.charAt(0));
                 if (x == -1 || y == -1) return false;
                 this.users.put(user, new User(user, pw, x, y, false));
                 atualizaUsers(x, y, user);
-
 
                 return true;
             }
@@ -279,7 +278,7 @@ public class EstadoPartilhado {
     public boolean addNotifyUser(String user, char zone) {
         wl.lock();
         try {
-            if (!isZoneValid(zone)) return false;
+            if (isZoneValid(zone)) return false;
             this.usersNotify.putIfAbsent(zone,new ArrayList<>());
             this.usersNotify.get(zone).add(user);
             return true;
