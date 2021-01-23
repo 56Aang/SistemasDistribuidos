@@ -3,12 +3,12 @@ package Client;
 import java.io.*;
 import java.net.Socket;
 
-public class ClientReader implements Runnable{
+public class ClientReader implements Runnable {
     private Socket cs;
     private DataInputStream in;
     private ClientStatus status;
 
-    public ClientReader(Socket cs, ClientStatus status){
+    public ClientReader(Socket cs, ClientStatus status) {
         this.cs = cs;
         this.status = status;
     }
@@ -18,44 +18,49 @@ public class ClientReader implements Runnable{
         String msg;
         String[] args;
         boolean msgs = false;
-        try{
+        try {
             this.in = new DataInputStream(new BufferedInputStream(cs.getInputStream()));
-            while(!(args = (msg = this.in.readUTF()).split(";"))[0].equals("EXIT")){
-                if(args[0].equals("GRANTED")){
-                    this.status.login();
-                    this.status.setInfected(args[1].equals("TRUE")); // se vier a true, infected <- true
-                    msgs = args[2].equals("TRUE");
+            while (!(args = (msg = this.in.readUTF()).split(";"))[0].equals("EXIT")) {
+                switch (args[0]) {
+                    case "GRANTED" -> { // GRANTED;ISINFECTED;TEMMENSAGENS;ÉESPECIAL
+                        this.status.login();
+                        this.status.setInfected(args[1].equals("TRUE")); // se vier a true, infected <- true
+                        msgs = args[2].equals("TRUE");
+                        this.status.setSpecial(args[3].equals("TRUE"));
+                    }
+                    case "LOGGED OUT" -> this.status.logout();
+                    case "USER INFECTED" -> this.status.setInfected(true);
+                    case "USER NOT INFECTED" -> this.status.setInfected(false);
                 }
-                else if(args[0].equals("LOGGED OUT")){
-                    this.status.logout();
-                }
-                else if(args[0].equals("USER INFECTED")){
-                    this.status.setInfected(true);
-                }
-                else if (args[0].equals("USER NOT INFECTED")){
-                    this.status.setInfected(false);
-                }
-
-                if(this.status.getWaiting() && msgs){
-                    String[] aux = msg.split(";");
-                    System.out.println(aux[0]);
-                    msg = this.in.readUTF();
-                    System.out.println("MESSAGE FROM SERVER: " + msg);
+                if (args[0].equals("GRANTED")) { // quando dá login
+                    System.out.println(args[0]);
+                    if (this.status.getState())
+                        System.out.println("YOU ARE INFECTED");
+                    else
+                        System.out.println("YOU ARE NOT INFECTED");
+                    if (msgs) {
+                        msg = this.in.readUTF();
+                        System.out.println("MESSAGE FROM SERVER: " + msg);
+                    }
                     this.status.setWaitingOFF();
-                }
-                else if(this.status.getWaiting()){
+                } //else if (this.status.getWaiting() && msgs) {
+                //  String[] aux = msg.split(";");
+                //  System.out.println(aux[0]);
+                //  msg = this.in.readUTF();
+                //  System.out.println("MESSAGE FROM SERVER: " + msg);
+                //  this.status.setWaitingOFF();
+                //  }
+                else if (this.status.getWaiting()) { // está à espera de resposta
                     System.out.println(msg);
                     this.status.setWaitingOFF();
-                }
-                else{
+                } else { // mensagens do servidor só
                     System.out.println("MESSAGE FROM SERVER: " + msg);
                 }
             }
             this.status.exited();
-            if(this.status.getWaiting()){
+            if (this.status.getWaiting()) {
                 this.status.setWaitingOFF();
             }
-
 
 
         } catch (IOException e) {

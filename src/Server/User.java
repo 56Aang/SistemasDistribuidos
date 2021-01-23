@@ -15,10 +15,11 @@ public class User {
     private List<String> recentlyWith;
     private int pos_x;
     private int pos_y;
-    private Boolean isInfected;
+    private boolean isInfected;
     private List<String> msgs;
+    private boolean special;
 
-    public User(String user, String password, int pos_x, int pos_y, Boolean isInfected) {
+    public User(String user, String password, int pos_x, int pos_y, boolean isInfected, boolean isSpecial) {
         this.user = user;
         this.password = password;
         this.pos_x = pos_x;
@@ -26,15 +27,7 @@ public class User {
         this.isInfected = isInfected;
         this.recentlyWith = new ArrayList<>();
         this.msgs = new ArrayList<>();
-    }
-
-    public User(String user, String pw) {
-        this.user = user;
-        this.password = pw;
-        this.recentlyWith = new ArrayList<>();
-        this.pos_x = this.pos_y = -1;
-        this.isInfected = false;
-        this.msgs = new ArrayList<>();
+        this.special = isSpecial;
     }
 
     public void moveTo(int x, int y) {
@@ -44,6 +37,15 @@ public class User {
             this.pos_y = y;
         } finally {
             wl.unlock();
+        }
+    }
+
+    public boolean isSpecial() {
+        rl.lock();
+        try {
+            return this.special;
+        } finally {
+            rl.unlock();
         }
     }
 
@@ -136,7 +138,15 @@ public class User {
         } finally {
             rl.unlock();
         }
+    }
 
+    public boolean wasRecentlyWith(String user){
+        rl.lock();
+        try {
+            return this.recentlyWith.contains(user);
+        }finally {
+            rl.unlock();
+        }
     }
 
     public int getX() {

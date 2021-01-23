@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
-import java.util.concurrent.locks.Condition;
 
 public class ClientDrawer implements Runnable {
     private int menu_status;
@@ -27,7 +26,11 @@ public class ClientDrawer implements Runnable {
                 break;
 
             case 1: // está logged
-                System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n4 - Consultar Localização\n0 - Logout");
+                if(this.status.isSpecial())
+                    System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n4 - Consultar Localização\n5 - Descarregar Mapa\n0 - Logout");
+                else
+                    System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n4 - Consultar Localização\n0 - Logout");
+
                 break;
 
             case 2: // está infetado
@@ -93,8 +96,13 @@ public class ClientDrawer implements Runnable {
             case 4:
                 menu_two_zoneConsult();
                 break;
+            case 5:
+                if(this.status.isSpecial()) {
+                    menu_two_mapDownload();
+                    break;
+                }
             default: {
-                System.out.println("Por favor insira um número das opeções dadas");
+                System.out.println("Por favor insira um número das opções dadas");
                 menu_two_output();
             }
         }
@@ -122,6 +130,8 @@ public class ClientDrawer implements Runnable {
 
         System.out.print("Username: ");
         username = is.nextLine();
+        if(username.isEmpty()) return;
+
         System.out.print("Password: ");
         password = is.nextLine();
 
@@ -141,16 +151,19 @@ public class ClientDrawer implements Runnable {
 
         System.out.print("Username: ");
         username = is.nextLine();
+        if (username.isEmpty()) return;
+
         System.out.print("Password: ");
         password = is.nextLine();
-        //while (password.isEmpty()){
-        //    System.out.println("Password inválida");
-        //    System.out.print("Password: ");
-        //    password = is.nextLine();
-        //}
+
         server_request("WRITEMAP");
         System.out.print("Zona: ");
         zona = is.nextLine().toUpperCase();
+        while (zona.isEmpty()) {
+            System.out.println("Zona Inválida!");
+            System.out.print("Zona: ");
+            zona = is.nextLine().toUpperCase();
+        }
 
         String result = String.join(";", "REGISTER", username, password, zona);
         this.server_request(result);
@@ -172,6 +185,7 @@ public class ClientDrawer implements Runnable {
             Scanner is = new Scanner(System.in);
             System.out.print("Zona: ");
             String loc = is.nextLine().toUpperCase();
+            if(loc.isEmpty()) return;
             String result = String.join(";", "CHANGEZONE", loc);
             this.server_request(result);
 
@@ -211,7 +225,7 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_zoneConsult(){
+    public void menu_two_zoneConsult() {
         try {
             server_request("WRITEMAP");
             Scanner is = new Scanner(System.in);
@@ -219,6 +233,14 @@ public class ClientDrawer implements Runnable {
             String loc = is.nextLine().toUpperCase();
             String result = String.join(";", "CONSULTZONE", loc);
             server_request(result);
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void menu_two_mapDownload(){
+        try {
+            server_request("DOWNLOADPLZ");
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }

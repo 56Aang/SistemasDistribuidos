@@ -1,6 +1,8 @@
 package Server;
 
 import Exceptions.BadZoneException;
+import Exceptions.InvalidUserException;
+import Exceptions.UserAlreadyExistingException;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -22,18 +24,9 @@ public class EstadoPartilhado {
     private Map<Character, List<String>> usersNotify;
 
 
-    public EstadoPartilhado() {
-        this.usersNotify = new HashMap<>();
-        this.users = new HashMap<>();
-        this.mapa = new int[5][5];
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                this.mapa[i][j] = 0;
-            }
-        }
-    }
 
     public EstadoPartilhado(NotificationHandler nh) {
+        HistoricParser.inicializa(5);
         this.usersNotify = new HashMap<>();
         this.users = new HashMap<>();
         this.mapa = new int[5][5];
@@ -45,7 +38,9 @@ public class EstadoPartilhado {
         }
     }
 
-    public EstadoPartilhado(int N) {
+    public EstadoPartilhado(NotificationHandler nh,int N) {
+        HistoricParser.inicializa(N);
+        this.usersNotify = new HashMap<>();
         this.users = new HashMap<>();
         this.mapa = new int[N][N];
         for (int i = 0; i < N; i++) {
@@ -53,18 +48,28 @@ public class EstadoPartilhado {
                 this.mapa[i][j] = 0;
             }
         }
+        this.nh = nh;
+    }
+
+    public int getMapaLength(){
+        rl.lock();
+        try {
+            return this.mapa.length;
+        }finally {
+            rl.unlock();
+        }
     }
 
     public String mapConsult() {
+        rl.lock();
         try {
-            rl.lock();
             StringBuilder sb = new StringBuilder();
             char a = 'A';
             int n = mapa.length;
             sb.append("CONSULTA DE MAPA\n");
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < n; j++) {
-                    sb.append(" | ").append(Character.toString(a + n * i + j)).append(" - ").append(this.mapa[i][j]);
+                    sb.append(" | ").append((char)(a + n * i + j)).append(" - ").append(this.mapa[i][j]);
                 }
                 sb.append(" |").append('\n');
             }
@@ -74,9 +79,9 @@ public class EstadoPartilhado {
         }
     }
 
-    public String changeZone(String user, char toWhere) throws BadZoneException {
+    public String changeZone(String user, char toWhere) throws BadZoneException, InvalidUserException {
+        wl.lock();
         try {
-            wl.lock();
 
             if (this.users.containsKey(user)) {
                 int n = this.mapa.length;
@@ -86,16 +91,17 @@ public class EstadoPartilhado {
                 //int i = (toWhere - 'A') / n;
                 int j = getZonaY(toWhere);
                 //int j = (toWhere - 'A') % n;
-                if (i >= n || j >= n || i < 0 || j > 0 || (xinit == i && yinit == j)) throw new BadZoneException();
+                if (i >= n || j >= n || i < 0 || j < 0 || (xinit == i && yinit == j)) throw new BadZoneException();
                 this.users.get(user).moveTo(i, j);
                 atualizaUsers(i, j, user);
+                if(this.usersNotify.containsKey(toWhere))
+                    this.usersNotify.get(toWhere).remove(user);
                 if (--this.mapa[xinit][yinit] == 0)
                     return Character.toString('A' + n * xinit + yinit);
 
                 return "true";
             }
-            System.out.println("ups");
-            return "false";
+            throw new InvalidUserException();
 
         } finally {
             wl.unlock();
@@ -103,8 +109,8 @@ public class EstadoPartilhado {
     }
 
     public String writeMap() {
+        rl.lock();
         try {
-            rl.lock();
             StringBuilder sb = new StringBuilder();
             char a = 'A';
             int n = mapa.length;
@@ -133,8 +139,8 @@ public class EstadoPartilhado {
     }
 
     public User getUser(String user) {
+        rl.lock();
         try {
-            rl.lock();
             return this.users.get(user);
         } finally {
             rl.unlock();
@@ -142,8 +148,8 @@ public class EstadoPartilhado {
     }
 
     public boolean logIn(String user, String pw) {
+        rl.lock();
         try {
-            rl.lock();
             return this.users.containsKey(user) && this.users.get(user).authenticate(pw);
         } finally {
             rl.unlock();
@@ -152,19 +158,35 @@ public class EstadoPartilhado {
     }
 
     public char getZone(int x, int y) { // é preciso verificar
-        return ((char) ('A' + this.mapa.length * x + y));
+        rl.lock();
+        try {
+            return ((char) ('A' + this.mapa.length * x + y));
+        } finally {
+            rl.unlock();
+        }
     }
 
     public int getZonaX(char zona) {
-        int i = (zona - 'A') / this.mapa.length;
-        if (i >= this.mapa.length) return -1;
-        return i;
+        rl.lock();
+        try {
+            int i = (zona - 'A') / this.mapa.length;
+            if (i >= this.mapa.length) return -1;
+            return i;
+        } finally {
+            rl.unlock();
+        }
     }
 
     public int getZonaY(char zona) {
-        int j = (zona - 'A') % this.mapa.length;
-        if (j >= this.mapa.length) return -1;
-        return j;
+        rl.lock();
+        try {
+            int j = (zona - 'A') % this.mapa.length;
+            if (j >= this.mapa.length) return -1;
+            return j;
+        } finally {
+            rl.unlock();
+        }
+
     }
 
     /**
@@ -172,23 +194,23 @@ public class EstadoPartilhado {
      *
      * @param user String com o nome do utilizador.
      * @param pw   String com a password do utilizador.
+     * @param zona String com a zona do utilizador.
      * @return boolean
      */
 
-    public boolean registerClient(String user, String pw, String zona) throws BadZoneException {
+    public boolean registerClient(String user, String pw, String zona) throws BadZoneException, UserAlreadyExistingException {
+        wl.lock();
         try {
-            wl.lock();
             if (!this.users.containsKey(user)) {
-                if(zona.isEmpty() || !isZoneValid(zona.charAt(0))) throw new BadZoneException();
+                if (zona.isEmpty() || !isZoneValid(zona.charAt(0))) throw new BadZoneException();
                 int x = getZonaX(zona.charAt(0));
                 int y = getZonaY(zona.charAt(0));
                 if (x == -1 || y == -1) return false;
-                this.users.put(user, new User(user, pw, x, y, false));
+                this.users.put(user, new User(user, pw, x, y, false, Character.isDigit(user.charAt(0)))); // users começados por digitos são special
                 atualizaUsers(x, y, user);
-
                 return true;
             }
-            return false;
+            throw new UserAlreadyExistingException(user);
         } finally {
             wl.unlock();
         }
@@ -200,7 +222,7 @@ public class EstadoPartilhado {
             this.mapa[x][y]++;
 
             for (User u : this.users.values()) {
-                if (u.getX() == x && u.getY() == y && !u.getUser().equals(user)) { // estão na mesma zona
+                if (u.getX() == x && u.getY() == y && !u.getUser().equals(user) && !this.users.get(user).wasRecentlyWith(u.getUser())) { // estão na mesma zona
                     this.users.get(user).addRecent(u.getUser()); // vvv
                     this.users.get(u.getUser()).addRecent(user); // update nos 2
                 }
@@ -211,8 +233,8 @@ public class EstadoPartilhado {
     }
 
     public void setInfected(String user, boolean state) {
+        wl.lock();
         try {
-            wl.lock();
             this.users.get(user).setInfected(state);
 
         } finally {
@@ -240,10 +262,10 @@ public class EstadoPartilhado {
     public void notificaVaga(char local) throws IOException {
         rl.lock();
         try {
-            if(this.usersNotify.containsKey(local)) {
-                this.nh.alertFreeZone(new ArrayList<>(this.usersNotify.get(local)),local);
+            if (this.usersNotify.containsKey(local)) {
+                this.nh.alertFreeZone(new ArrayList<>(this.usersNotify.get(local)), local);
             }
-        }finally {
+        } finally {
             rl.unlock();
         }
 
@@ -260,8 +282,8 @@ public class EstadoPartilhado {
     public void addNewHandler(String user, Socket s) {
         wl.lock();
         try {
-        this.nh.addClient(user, s);
-        }finally {
+            this.nh.addClient(user, s);
+        } finally {
             wl.unlock();
         }
     }
@@ -270,16 +292,17 @@ public class EstadoPartilhado {
         wl.lock();
         try {
             this.nh.removeClient(user);
-        }finally {
+        } finally {
             wl.unlock();
         }
     }
 
-    public boolean addNotifyUser(String user, char zone) {
+    public boolean addNotifyUser(String user, char zone) throws BadZoneException {
         wl.lock();
         try {
-            if (isZoneValid(zone)) return false;
-            this.usersNotify.putIfAbsent(zone,new ArrayList<>());
+            if (!isZoneValid(zone)) throw new BadZoneException();
+            if(this.usersNotify.get(zone).contains(user)) return false;
+            this.usersNotify.putIfAbsent(zone, new ArrayList<>());
             this.usersNotify.get(zone).add(user);
             return true;
         } finally {

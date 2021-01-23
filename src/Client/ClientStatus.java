@@ -9,6 +9,7 @@ public class ClientStatus {
     private boolean waitingForResponse;
     private boolean exited;
     private boolean isInfected;
+    private boolean isSpecial;
     private final Lock l = new ReentrantLock();
     private final Condition condLog = l.newCondition();
 
@@ -18,6 +19,24 @@ public class ClientStatus {
         this.waitingForResponse = false;
         this.exited = false;
         this.isInfected = false;
+    }
+
+    public boolean isSpecial() {
+        l.lock();
+        try {
+            return this.isSpecial;
+        } finally {
+            l.unlock();
+        }
+    }
+
+    public void setSpecial(boolean special) {
+        l.lock();
+        try {
+            this.isSpecial = special;
+        } finally {
+            l.unlock();
+        }
     }
 
     public synchronized void login() {

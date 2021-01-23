@@ -1,6 +1,8 @@
 package Server;
 
 import Exceptions.BadZoneException;
+import Exceptions.InvalidUserException;
+import Exceptions.UserAlreadyExistingException;
 
 import java.io.*;
 import java.net.Socket;
@@ -50,10 +52,9 @@ public class ClientHandler implements Runnable {
      * Método que recebe uma mensagem do cliente e reencaminha para o método correto.
      *
      * @param msg Pedido recebido.
-     * @return Valor booleano se a ligação ao servidor tem que ser cortada.
      */
 
-    private boolean command(String msg) throws IOException {
+    private void command(String msg) throws IOException {
         String[] args = msg.split(";");
 
         switch (args[0]) {
@@ -88,6 +89,9 @@ public class ClientHandler implements Runnable {
             case "CONSULTZONE":
                 commandConsultZone(msg);
                 break;
+            case "DOWNLOADPLZ":
+                commandDownloadMap();
+                break;
             default: {
                 this.out.writeUTF("Erro");
                 out.flush();
@@ -95,7 +99,6 @@ public class ClientHandler implements Runnable {
             }
         }
 
-        return args[0].equals("EXIT");
     }
 
 
@@ -119,14 +122,16 @@ public class ClientHandler implements Runnable {
 
     private void commandLogin(String msg) throws IOException {
         String[] args = msg.split(";");
-        if (this.estado.logIn(args[1], args[2])) {
+        String pw = (args.length > 2) ? args[2] : ""; // permitir pass's vazias
+        if (this.estado.logIn(args[1], pw)) {
             this.active_user = args[1];
             this.estado.addNewHandler(active_user, cs); // adicionar socket
 
             String state = this.estado.getUser(active_user).isInfected() ? "TRUE" : "FALSE";
+            String special = this.estado.getUser(active_user).isSpecial() ? "TRUE" : "FALSE";
 
             if (this.estado.getUser(active_user).hasMsgs()) {
-                out.writeUTF("GRANTED;" + state + ";TRUE");
+                out.writeUTF("GRANTED;" + state + ";TRUE;" + special);
                 out.flush();
 
                 StringBuilder sb = new StringBuilder();
@@ -137,7 +142,7 @@ public class ClientHandler implements Runnable {
                 out.writeUTF(sb.toString());
                 out.flush();
             } else {
-                out.writeUTF("GRANTED;" + state + ";FALSE");
+                out.writeUTF("GRANTED;" + state + ";FALSE;" + special);
                 out.flush();
             }
 
@@ -155,16 +160,17 @@ public class ClientHandler implements Runnable {
             if ((ret = this.estado.changeZone(this.active_user, args[1].charAt(0))).equals("true")) {
                 out.writeUTF("UPDATED SUCCESSFULLY");
                 out.flush();
-            } else if (ret.equals("false")) {
-                out.writeUTF("WRONG ZONE");
-                out.flush();
             } else {
                 out.writeUTF("UPDATED SUCCESSFULLY");
                 out.flush();
                 this.estado.notificaVaga(ret.charAt(0));
             }
+            HistoricParser.addC(this.active_user, args[1].charAt(0), this.estado.getUser(active_user).isInfected(), false);
         } catch (BadZoneException e) {
             out.writeUTF("BAD ZONE");
+            out.flush();
+        } catch (InvalidUserException e) { // não deve calhar aqui
+            out.writeUTF("INVALID USER");
             out.flush();
         }
     }
@@ -186,6 +192,7 @@ public class ClientHandler implements Runnable {
         System.out.println(args[1] + args[2]);
         try {
             if (this.estado.registerClient(args[1], args[2], args[3])) {
+                HistoricParser.addC(args[1], args[3].charAt(0), false, false);
                 out.writeUTF("USER REGISTERED");
             } else {
                 out.writeUTF("USER ALREADY REGISTERED");
@@ -193,6 +200,9 @@ public class ClientHandler implements Runnable {
             out.flush();
         } catch (BadZoneException e) {
             out.writeUTF("COULDN'T REGISTER: WRONG ZONE");
+            out.flush();
+        } catch (UserAlreadyExistingException e) {
+            out.writeUTF("COULDN'T REGISTER: User already exists: " + e.getMessage());
             out.flush();
         }
     }
@@ -208,11 +218,12 @@ public class ClientHandler implements Runnable {
         if (state) {
             estado.notificaInfecao(this.active_user);
             out.writeUTF("USER INFECTED");
+            HistoricParser.addC(args[1], this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), true, false);
         } else {
             out.writeUTF("USER NOT INFECTED");
+            HistoricParser.addC(args[1], this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), false, true);
         }
         out.flush();
-
     }
 
     private void commandServerNotify(String msg) throws IOException {
@@ -225,17 +236,27 @@ public class ClientHandler implements Runnable {
     }
 
     private void commandConsultZone(String msg) throws IOException {
-        String[] args = msg.split(";");
-        System.out.println(msg);
-        char zone = args[1].charAt(0);
-        if (this.estado.addNotifyUser(this.active_user, zone)) {
-            String output = "YOU WILL RECEIVE NOTIFICATION WHEN ZONE " + zone + " IS EMPTY";
-            out.writeUTF(output);
-            out.flush();
-        } else {
+        try {
+            String[] args = msg.split(";");
+            System.out.println(msg);
+            char zone = args[1].charAt(0);
+            if (this.estado.addNotifyUser(this.active_user, zone)) {
+                String output = "YOU WILL RECEIVE NOTIFICATION WHEN ZONE " + zone + " IS EMPTY";
+                out.writeUTF(output);
+                out.flush();
+            } else {
+                out.writeUTF("ZONE ALREADY ADDED");
+                out.flush();
+            }
+        } catch (BadZoneException e) {
             out.writeUTF("INVALID ZONE");
             out.flush();
         }
+    }
+
+    private void commandDownloadMap() throws IOException {
+        out.writeUTF("DOWNLOAD SUCCESSFUL.\nYOU CAN FIND IT AT: " + HistoricParser.statisticsMapFile(this.estado.getMapaLength()));
+        out.flush();
     }
 
 }
