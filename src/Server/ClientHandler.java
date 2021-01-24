@@ -16,7 +16,6 @@ public class ClientHandler implements Runnable {
     private DataOutputStream out;
     private DataInputStream in;
     private String active_user;
-    //private User utilizador;
     private EstadoPartilhado estado;
 
     public ClientHandler(Socket cs, EstadoPartilhado estado) {
@@ -25,7 +24,9 @@ public class ClientHandler implements Runnable {
         this.active_user = null;
     }
 
-    @Override
+    /**
+     * Método para ser executado pela thread.
+     */
     public void run() {
         String msg;
 
@@ -50,22 +51,19 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método que recebe uma mensagem do cliente e reencaminha para o método correto.
-     *
      * @param msg Pedido recebido.
+     * @throws IOException
      */
-
-    private void command(String msg) throws IOException {
+    private void command(String msg) throws IOException{
         String[] args = msg.split(";");
 
         switch (args[0]) {
             case "LOGIN":
                 commandLogin(msg);
                 break;
-
             case "REGISTER":
                 commandSign(msg);
                 break;
-
             case "LOGOUT":
                 commandLogout();
                 break;
@@ -118,11 +116,10 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método reponsável por fazer login de um utilizador.
-     *
      * @param msg Pedido ao servidor.
+     * @throws IOException
      */
-
-    private void commandLogin(String msg) throws IOException {
+    private void commandLogin(String msg) throws IOException{
         String[] args = msg.split(";");
         String pw = (args.length > 2) ? args[2] : ""; // permitir pass's vazias
         if (this.estado.logIn(args[1], pw)) {
@@ -141,6 +138,7 @@ public class ClientHandler implements Runnable {
                 for (String s : this.estado.getUser(active_user).getMsgs()) {
                     sb.append('\n').append(s);
                 }
+                this.estado.getUser(active_user).clearMsgs();
                 out.writeUTF(sb.toString());
                 out.flush();
             } else {
@@ -154,7 +152,11 @@ public class ClientHandler implements Runnable {
             out.flush();
         }
     }
-
+    /**
+     * Método que altera localização de um utilizador.
+     * @param msg Pedido ao servidor.
+     * @throws IOException
+     */
     private void commandChangeZone(String msg) throws IOException {
         String[] args = msg.split(";");
         String ret;
@@ -176,7 +178,11 @@ public class ClientHandler implements Runnable {
             out.flush();
         }
     }
-
+    /**
+     * Método que consulta uma dada zona inserida pelo utilizador
+     * @param msg Pedido ao servidor.
+     * @throws IOException
+     */
     private void commandConsultZone(String msg) throws IOException {
         try {
             String[] args = msg.split(";");
@@ -199,7 +205,10 @@ public class ClientHandler implements Runnable {
             out.flush();
         }
     }
-
+    /**
+     * Método que imprime para o utilizador um mapa com a quantidade de utilizadores nas várias zonas.
+     * @throws IOException
+     */
     private void commandConsultMap() throws IOException {
         out.writeUTF(this.estado.mapConsult());
         out.flush();
@@ -208,10 +217,8 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método reponsável por registar um utilizador.
-     *
      * @param msg Pedido ao servidor.
      */
-
     private void commandSign(String msg) throws IOException {
         String[] args = msg.split(";");
         System.out.println(args[1] + args[2]);
@@ -232,28 +239,43 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void commandInformState(String msg) throws IOException {
+    /**
+     * Método que altera estado de infeção do utilizador.
+     * @param msg Pedido ao servidor.
+     * @throws IOException
+     */
+    private void commandInformState(String msg) throws IOException{
         String[] args = msg.split(";");
         System.out.println(args[1]);
         boolean state;
 
         state = args[1].equals("TRUE");
 
-        if (state) {
+        if (state) { // está infetado
             this.estado.setInfected(active_user, state);
             estado.notificaInfecao(this.active_user);
             out.writeUTF("USER INFECTED");
             HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), true, false);
         } else {
-            if (this.estado.getUser(active_user).isInfected()) {
-                this.estado.setInfected(active_user, state);
+            if (this.estado.getUser(active_user).isInfected()) { // mudou de infetado -> não infetado
+                this.estado.setInfected(active_user, state); // atualiza estado para não infetado
+
+
+                //verificar isto
+                this.estado.atualizaUsers(this.estado.getUser(active_user).getX(),this.estado.getUser(active_user).getY(),active_user); // atualiza lista de recently with
+
+
                 HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), false, true);
             }
             out.writeUTF("USER NOT INFECTED");
         }
         out.flush();
     }
-
+    /**
+     * Método que notifica todos os utilizadores que estão em risco de estarem infetados.
+     * @param msg Pedido ao servidor do NotificationHandler.
+     * @throws IOException
+     */
     private void commandServerNotify(String msg) throws IOException {
         String[] args = msg.split(";");
         System.out.println(args[1]);
@@ -262,7 +284,11 @@ public class ClientHandler implements Runnable {
             out.flush();
         }
     }
-
+    /**
+     * Método que adiciona utilizador à lista de utilizadores a notificar por zona.
+     * @param msg Pedido ao servidor.
+     * @throws IOException
+     */
     private void commandConsultZoneNotify(String msg) throws IOException {
         try {
             String[] args = msg.split(";");
@@ -281,7 +307,10 @@ public class ClientHandler implements Runnable {
             out.flush();
         }
     }
-
+    /**
+     * Método que faz download de um mapa com estatísticas dos utilizadores.
+     * @throws IOException
+     */
     private void commandDownloadMap() throws IOException {
         out.writeUTF("DOWNLOAD SUCCESSFUL.\nYOU CAN FIND IT AT: " + HistoricParser.statisticsMapFile(this.estado.getMapaLength()));
         out.flush();

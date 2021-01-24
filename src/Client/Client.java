@@ -5,6 +5,9 @@ import java.net.Socket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Classe responsável por ligar um cliente ao servidor.
+ */
 public class Client {
 
 

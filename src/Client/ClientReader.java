@@ -1,8 +1,14 @@
 package Client;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.net.Socket;
 
+
+/**
+ * Classe responsável por ler a informação proveniente do servidor.
+ */
 public class ClientReader implements Runnable {
     private Socket cs;
     private DataInputStream in;
@@ -13,7 +19,9 @@ public class ClientReader implements Runnable {
         this.status = status;
     }
 
-    @Override
+    /**
+     * Método para ser executado pela thread.
+     */
     public void run() {
         String msg;
         String[] args;

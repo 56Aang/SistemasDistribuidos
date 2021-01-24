@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
+
+/**
+ * Classe responsável por ler a informação proveniente do cliente e enviar para o Servidor.
+ */
 public class ClientDrawer implements Runnable {
     private int menu_status;
     private Socket cs;
@@ -18,7 +22,9 @@ public class ClientDrawer implements Runnable {
         this.cs = cs;
     }
 
-
+    /**
+     * Método usado para desenhar os menus.
+     */
     public void menu_draw() {
         switch (this.menu_status) {
             case 0:
@@ -39,7 +45,11 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-
+    /**
+     * Método para ler a decisão do cliente em cada menu.
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void read_menu_output() throws IOException, InterruptedException {
         switch (this.menu_status) {
             case 0:
@@ -55,7 +65,11 @@ public class ClientDrawer implements Runnable {
                 break;
         }
     }
-
+    /**
+     * Método para interpretar a decisão do cliente no menu 1.
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void menu_one_output() throws IOException, InterruptedException {
         int option = this.readOpt();
 
@@ -76,7 +90,9 @@ public class ClientDrawer implements Runnable {
             }
         }
     }
-
+    /**
+     * Método para interpretar a decisão do cliente no menu 2.
+     */
     public void menu_two_output() { // LOGGED IN
         int option = this.readOpt();
 
@@ -113,6 +129,9 @@ public class ClientDrawer implements Runnable {
         }
     }
 
+    /**
+     * Método para interpretar a decisão do cliente no menu 3.
+     */
     public void menu_three_output() {
         int option = this.readOpt();
 
@@ -128,7 +147,11 @@ public class ClientDrawer implements Runnable {
                 menu_three_output();
         }
     }
-
+    /**
+     * Método para fazer login.
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void menu_one_login() throws IOException, InterruptedException {
         String username, password;
         Scanner is = new Scanner(System.in);
@@ -149,7 +172,11 @@ public class ClientDrawer implements Runnable {
         }
 
     }
-
+    /**
+     * Método para registar.
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void menu_one_signup() throws IOException, InterruptedException {
         String username, password, zona;
         Scanner is = new Scanner(System.in);
@@ -174,7 +201,9 @@ public class ClientDrawer implements Runnable {
         this.server_request(result);
 
     }
-
+    /**
+     * Método para dar logout.
+     */
     public void menu_two_logout() {
         try {
             server_request("LOGOUT");
@@ -183,7 +212,9 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Método para mudar a zona do utilizador.
+     */
     public void menu_two_update() {
         try {
             server_request("WRITEMAP");
@@ -198,7 +229,9 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Método para consultar uma dada zona.
+     */
     public void menu_two_zoneConsult(){
         try {
             server_request("WRITEMAP");
@@ -212,7 +245,9 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Método para consultar o mapa completo.
+     */
     public void menu_two_consulta() {
         try {
             server_request("CONSULTMAP");
@@ -220,7 +255,9 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Método para informar sobre estado de infeção.
+     */
     public void menu_two_covidState() {
         try {
             Scanner is = new Scanner(System.in);
@@ -243,7 +280,9 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Método para ativar notificação sobre uma dada localização.
+     */
     public void menu_two_zoneConsultNotify() {
         try {
             server_request("WRITEMAP");
@@ -256,7 +295,9 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Método para fazer download do mapa com estatísticas.
+     */
     public void menu_two_mapDownload(){
         try {
             server_request("DOWNLOADPLZ");
@@ -265,14 +306,21 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-
+    /**
+     * Método para enviar pedidos ao servidor.
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void server_request(String msg) throws IOException, InterruptedException {
         this.out.writeUTF(msg);
         this.out.flush();
         this.status.waitForResponse();
     }
 
-
+    /**
+     * Método para ler um inteiro digitado pelo utilizador.
+     * @return Valor inteiro introduzido pelo utilizador.
+     */
     public int readOpt() {
         int option = -1;
         boolean valid = false;
@@ -291,7 +339,9 @@ public class ClientDrawer implements Runnable {
 
         return option;
     }
-
+    /**
+     * Método que é executado pela thread.
+     */
     public void run() {
         try {
             this.out = new DataOutputStream(new BufferedOutputStream(cs.getOutputStream()));
