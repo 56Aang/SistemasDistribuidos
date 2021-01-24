@@ -214,14 +214,17 @@ public class ClientHandler implements Runnable {
 
         state = args[1].equals("TRUE");
 
-        this.estado.setInfected(active_user, state);
         if (state) {
+            this.estado.setInfected(active_user, state);
             estado.notificaInfecao(this.active_user);
             out.writeUTF("USER INFECTED");
             HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), true, false);
         } else {
+            if(this.estado.getUser(active_user).isInfected()) {
+                this.estado.setInfected(active_user, state);
+                HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), false, true);
+            }
             out.writeUTF("USER NOT INFECTED");
-            HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), false, true);
         }
         out.flush();
     }
