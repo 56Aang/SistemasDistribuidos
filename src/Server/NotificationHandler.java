@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Classe responsável por notificar os utilizadores.
+ */
 public class NotificationHandler {
 
     private Map<String, Socket> clientes;
@@ -19,7 +22,12 @@ public class NotificationHandler {
     public NotificationHandler() {
         this.clientes = new HashMap<>();
     }
-
+    /**
+     * Método que adiciona uma Socket a um utilizador.
+     *
+     * @param user String com o nome do utilizador.
+     * @param s Socket do utilizador.
+     */
     public void addClient(String user, Socket s) {
         l.lock();
         try {
@@ -28,7 +36,11 @@ public class NotificationHandler {
             l.unlock();
         }
     }
-
+    /**
+     * Método que remove uma Socket de um utilizador.
+     *
+     * @param user String com o nome do utilizador.
+     */
     public void removeClient(String user) {
         l.lock();
         try {
@@ -37,7 +49,12 @@ public class NotificationHandler {
             l.unlock();
         }
     }
-
+    /**
+     * Método que notifica utilizadores em risco.
+     *
+     * @param pInfected Lista com os nomes dos utilizadores a notificar.
+     * @return List com os nomes dos utilizadores que se encontram offline.
+     */
     public List<String> alertInfected(List<String> pInfected) throws IOException {
         l.lock();
         try {
@@ -56,7 +73,12 @@ public class NotificationHandler {
             l.unlock();
         }
     }
-
+    /**
+     * Método que notifica utilizadores que uma zona ficou livre.
+     *
+     * @param usersToNotify Lista com os nomes dos utilizadores a notificar.
+     * @param a char com a zona.
+     */
     public void alertFreeZone(List<String> usersToNotify,char a) throws IOException {
         l.lock();
         try {

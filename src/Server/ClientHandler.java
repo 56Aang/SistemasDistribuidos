@@ -51,6 +51,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método que recebe uma mensagem do cliente e reencaminha para o método correto.
+     *
      * @param msg Pedido recebido.
      * @throws IOException
      */
@@ -116,6 +117,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método reponsável por fazer login de um utilizador.
+     *
      * @param msg Pedido ao servidor.
      * @throws IOException
      */
@@ -154,6 +156,7 @@ public class ClientHandler implements Runnable {
     }
     /**
      * Método que altera localização de um utilizador.
+     *
      * @param msg Pedido ao servidor.
      * @throws IOException
      */
@@ -180,6 +183,7 @@ public class ClientHandler implements Runnable {
     }
     /**
      * Método que consulta uma dada zona inserida pelo utilizador
+     *
      * @param msg Pedido ao servidor.
      * @throws IOException
      */
@@ -207,6 +211,7 @@ public class ClientHandler implements Runnable {
     }
     /**
      * Método que imprime para o utilizador um mapa com a quantidade de utilizadores nas várias zonas.
+     *
      * @throws IOException
      */
     private void commandConsultMap() throws IOException {
@@ -217,6 +222,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método reponsável por registar um utilizador.
+     *
      * @param msg Pedido ao servidor.
      */
     private void commandSign(String msg) throws IOException {
@@ -241,6 +247,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Método que altera estado de infeção do utilizador.
+     *
      * @param msg Pedido ao servidor.
      * @throws IOException
      */
@@ -273,6 +280,7 @@ public class ClientHandler implements Runnable {
     }
     /**
      * Método que notifica todos os utilizadores que estão em risco de estarem infetados.
+     *
      * @param msg Pedido ao servidor do NotificationHandler.
      * @throws IOException
      */
@@ -286,6 +294,7 @@ public class ClientHandler implements Runnable {
     }
     /**
      * Método que adiciona utilizador à lista de utilizadores a notificar por zona.
+     *
      * @param msg Pedido ao servidor.
      * @throws IOException
      */
@@ -309,6 +318,7 @@ public class ClientHandler implements Runnable {
     }
     /**
      * Método que faz download de um mapa com estatísticas dos utilizadores.
+     *
      * @throws IOException
      */
     private void commandDownloadMap() throws IOException {

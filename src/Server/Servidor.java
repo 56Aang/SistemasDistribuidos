@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
+/**
+ * Classe responsável por ligar um Servidor a vários Clientes.
+ */
 public class Servidor {
 
     public static void main (String[] args) throws IOException {
