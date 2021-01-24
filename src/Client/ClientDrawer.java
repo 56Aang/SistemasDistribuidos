@@ -27,9 +27,9 @@ public class ClientDrawer implements Runnable {
 
             case 1: // está logged
                 if(this.status.isSpecial())
-                    System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n4 - Consultar Localização\n5 - Descarregar Mapa\n0 - Logout");
+                    System.out.println("1 - Atualizar Localização\n2 - Consultar Localização\n3 - Informar Estado Covid\n4 - Consultar Localização\n5 - Descarregar Mapa\n6 - Consultar Mapa\n0 - Logout");
                 else
-                    System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas\n3 - Informar Estado Covid\n4 - Consultar Localização\n0 - Logout");
+                    System.out.println("1 - Atualizar Localização\n2 - Consultar Localização\n3 - Informar Estado Covid\n4 - Consultar Localização\n0 - Logout");
 
                 break;
 
@@ -88,17 +88,22 @@ public class ClientDrawer implements Runnable {
                 menu_two_update();
                 break;
             case 2:
-                menu_two_consulta();
+                menu_two_zoneConsult();
                 break;
             case 3:
                 menu_two_covidState();
                 break;
             case 4:
-                menu_two_zoneConsult();
+                menu_two_zoneConsultNotify();
                 break;
             case 5:
                 if(this.status.isSpecial()) {
                     menu_two_mapDownload();
+                    break;
+                }
+            case 6:
+                if(this.status.isSpecial()){
+                    menu_two_consulta();
                     break;
                 }
             default: {
@@ -194,6 +199,20 @@ public class ClientDrawer implements Runnable {
         }
     }
 
+    public void menu_two_zoneConsult(){
+        try {
+            server_request("WRITEMAP");
+            Scanner is = new Scanner(System.in);
+            System.out.print("Zona: ");
+            String loc = is.nextLine().toUpperCase();
+            if(loc.isEmpty()) return;
+            String result = String.join(";","CONSULTZONE",loc);
+            this.server_request(result);
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void menu_two_consulta() {
         try {
             server_request("CONSULTMAP");
@@ -225,13 +244,13 @@ public class ClientDrawer implements Runnable {
         }
     }
 
-    public void menu_two_zoneConsult() {
+    public void menu_two_zoneConsultNotify() {
         try {
             server_request("WRITEMAP");
             Scanner is = new Scanner(System.in);
             System.out.print("Zona: ");
             String loc = is.nextLine().toUpperCase();
-            String result = String.join(";", "CONSULTZONE", loc);
+            String result = String.join(";", "CONSULTZONENOTIFY", loc);
             server_request(result);
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();

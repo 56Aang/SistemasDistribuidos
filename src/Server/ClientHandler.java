@@ -69,13 +69,15 @@ public class ClientHandler implements Runnable {
             case "LOGOUT":
                 commandLogout();
                 break;
-
             case "WRITEMAP":
                 out.writeUTF(this.estado.writeMap());
                 out.flush();
                 break;
             case "CHANGEZONE":
                 commandChangeZone(msg);
+                break;
+            case "CONSULTZONE":
+                commandConsultZone(msg);
                 break;
             case "CONSULTMAP":
                 commandConsultMap();
@@ -86,8 +88,8 @@ public class ClientHandler implements Runnable {
             case "SERVER":
                 commandServerNotify(msg);
                 break;
-            case "CONSULTZONE":
-                commandConsultZone(msg);
+            case "CONSULTZONENOTIFY":
+                commandConsultZoneNotify(msg);
                 break;
             case "DOWNLOADPLZ":
                 commandDownloadMap();
@@ -175,6 +177,29 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void commandConsultZone(String msg) throws IOException {
+        try {
+            String[] args = msg.split(";");
+            String res;
+            char zone = args[1].charAt(0);
+            int qt = this.estado.zoneConsult(zone);
+            if (qt == 0) {
+                res = "THERE IS NOBODY IN ZONE " + zone;
+            }
+            else if (qt == 1){
+                res = "THERE IS 1 PERSON IN ZONE " + zone;
+            }
+            else{
+                res = "THERE ARE " + qt + " PEOPLE IN ZONE " + zone;
+            }
+            out.writeUTF(res);
+            out.flush();
+        } catch (BadZoneException e) {
+            out.writeUTF("INVALID ZONE");
+            out.flush();
+        }
+    }
+
     private void commandConsultMap() throws IOException {
         out.writeUTF(this.estado.mapConsult());
         out.flush();
@@ -220,7 +245,7 @@ public class ClientHandler implements Runnable {
             out.writeUTF("USER INFECTED");
             HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), true, false);
         } else {
-            if(this.estado.getUser(active_user).isInfected()) {
+            if (this.estado.getUser(active_user).isInfected()) {
                 this.estado.setInfected(active_user, state);
                 HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), false, true);
             }
@@ -238,7 +263,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void commandConsultZone(String msg) throws IOException {
+    private void commandConsultZoneNotify(String msg) throws IOException {
         try {
             String[] args = msg.split(";");
             System.out.println(msg);

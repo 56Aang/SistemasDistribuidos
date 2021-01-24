@@ -24,7 +24,6 @@ public class EstadoPartilhado {
     private Map<Character, List<String>> usersNotify;
 
 
-
     public EstadoPartilhado(NotificationHandler nh) {
         HistoricParser.inicializa(5);
         this.usersNotify = new HashMap<>();
@@ -38,7 +37,7 @@ public class EstadoPartilhado {
         }
     }
 
-    public EstadoPartilhado(NotificationHandler nh,int N) {
+    public EstadoPartilhado(NotificationHandler nh, int N) {
         HistoricParser.inicializa(N);
         this.usersNotify = new HashMap<>();
         this.users = new HashMap<>();
@@ -51,11 +50,11 @@ public class EstadoPartilhado {
         this.nh = nh;
     }
 
-    public int getMapaLength(){
+    public int getMapaLength() {
         rl.lock();
         try {
             return this.mapa.length;
-        }finally {
+        } finally {
             rl.unlock();
         }
     }
@@ -69,7 +68,7 @@ public class EstadoPartilhado {
             sb.append("CONSULTA DE MAPA\n");
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < n; j++) {
-                    sb.append(" | ").append((char)(a + n * i + j)).append(" - ").append(this.mapa[i][j]);
+                    sb.append(" | ").append((char) (a + n * i + j)).append(" - ").append(this.mapa[i][j]);
                 }
                 sb.append(" |").append('\n');
             }
@@ -94,7 +93,7 @@ public class EstadoPartilhado {
                 if (i >= n || j >= n || i < 0 || j < 0 || (xinit == i && yinit == j)) throw new BadZoneException();
                 this.users.get(user).moveTo(i, j);
                 atualizaUsers(i, j, user);
-                if(this.usersNotify.containsKey(toWhere))
+                if (this.usersNotify.containsKey(toWhere))
                     this.usersNotify.get(toWhere).remove(user);
                 if (--this.mapa[xinit][yinit] == 0)
                     return Character.toString('A' + n * xinit + yinit);
@@ -301,7 +300,7 @@ public class EstadoPartilhado {
         wl.lock();
         try {
             if (!isZoneValid(zone)) throw new BadZoneException();
-            if(this.usersNotify.get(zone).contains(user)) return false;
+            if (this.usersNotify.get(zone).contains(user)) return false;
             this.usersNotify.putIfAbsent(zone, new ArrayList<>());
             this.usersNotify.get(zone).add(user);
             return true;
@@ -309,6 +308,16 @@ public class EstadoPartilhado {
             wl.unlock();
         }
 
+    }
+
+    public int zoneConsult(char zone) throws BadZoneException {
+        rl.lock();
+        try {
+            if (!isZoneValid(zone)) throw new BadZoneException();
+            return this.mapa[getZonaX(zone)][getZonaY(zone)];
+        } finally {
+            rl.unlock();
+        }
     }
 
 }
