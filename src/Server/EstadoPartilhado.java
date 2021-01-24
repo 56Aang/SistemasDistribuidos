@@ -399,6 +399,8 @@ public class EstadoPartilhado {
         wl.lock();
         try {
             if (!isZoneValid(zone)) throw new BadZoneException();
+
+            this.usersNotify.putIfAbsent(zone,new ArrayList<>());
             if (this.usersNotify.get(zone).contains(user)) return false;
             this.usersNotify.putIfAbsent(zone, new ArrayList<>());
             this.usersNotify.get(zone).add(user);
