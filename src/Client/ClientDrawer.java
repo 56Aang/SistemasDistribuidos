@@ -33,9 +33,9 @@ public class ClientDrawer implements Runnable {
 
             case 1: // está logged
                 if(this.status.isSpecial())
-                    System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas numa Localização\n3 - Informar Estado Covid\n4 - Consultar Localização\n5 - Descarregar Mapa\n6 - Consultar Mapa\n0 - Logout");
+                    System.out.println("1 - Atualizar Localização\n2 - Consultar Localização\n3 - Informar Estado Covid\n4 - Notificar Vaga\n5 - Descarregar Mapa\n6 - Consultar Mapa\n0 - Logout");
                 else
-                    System.out.println("1 - Atualizar Localização\n2 - Consultar Número de Pessoas numa Localização\n3 - Informar Estado Covid\n4 - Consultar Localização\n0 - Logout");
+                    System.out.println("1 - Atualizar Localização\n2 - Consultar Localização\n3 - Informar Estado Covid\n4 - Notificar Vaga\n0 - Logout");
 
                 break;
 
