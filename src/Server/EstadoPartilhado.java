@@ -6,6 +6,8 @@ import Exceptions.UserAlreadyExistingException;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -319,12 +321,15 @@ public class EstadoPartilhado {
         try {
             List<String> pInfected = this.users.get(user).getRecentlyWith();
             List<String> usersNotLogged = this.nh.alertInfected(pInfected);
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+            LocalDateTime now = LocalDateTime.now();
+            String datetimenow = "["+ dtf.format(now)+"]";
             this.users.get(user).clearRecentlyWith();
             for (String s : pInfected) {
                 this.users.get(s).removeRecentlyWith(user);
             }
             for (String s : usersNotLogged) {
-                this.users.get(s).addMsg("YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
+                this.users.get(s).addMsg(datetimenow + ": YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
             }
         } finally {
             wl.unlock();
@@ -339,8 +344,15 @@ public class EstadoPartilhado {
     public void notificaVaga(char local) throws IOException {
         rl.lock();
         try {
+            List<String> usersNotLogged;
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+            LocalDateTime now = LocalDateTime.now();
+            String datetimenow = "["+ dtf.format(now)+"]";
             if (this.usersNotify.containsKey(local)) {
-                this.nh.alertFreeZone(new ArrayList<>(this.usersNotify.get(local)), local);
+                usersNotLogged = this.nh.alertFreeZone(new ArrayList<>(this.usersNotify.get(local)), local);
+                for(String s : usersNotLogged){
+                    this.users.get(s).addMsg(datetimenow + ": ZONE " + local + " IS FREE");
+                }
             }
         } finally {
             rl.unlock();

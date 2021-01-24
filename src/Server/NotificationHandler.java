@@ -4,6 +4,8 @@ import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,10 +61,13 @@ public class NotificationHandler {
         l.lock();
         try {
             List<String> usersNotLogged = new ArrayList<>();
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+            LocalDateTime now = LocalDateTime.now();
+            String datetimenow = "["+ dtf.format(now)+"]";
             for (String s : pInfected) {
                 if (this.clientes.containsKey(s)) {
                     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.clientes.get(s).getOutputStream()));
-                    out.writeUTF("YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
+                    out.writeUTF(datetimenow + ": YOU'VE BEEN IN CONTACT WITH AN INFECTED PERSON");
                     out.flush();
                 } else {
                     usersNotLogged.add(s);
@@ -79,18 +84,25 @@ public class NotificationHandler {
      * @param usersToNotify Lista com os nomes dos utilizadores a notificar.
      * @param a char com a zona.
      */
-    public void alertFreeZone(List<String> usersToNotify,char a) throws IOException {
+    public List<String> alertFreeZone(List<String> usersToNotify,char a) throws IOException {
         l.lock();
         try {
-            String output = "ZONE " + a + " IS FREE";
-
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+            LocalDateTime now = LocalDateTime.now();
+            String datetimenow = "["+ dtf.format(now)+"]";
+            String output = datetimenow + ": ZONE " + a + " IS FREE";
+            List<String> usersNotLogged = new ArrayList<>();
             for (String s : usersToNotify) {
                 if(this.clientes.containsKey(s)) {
                     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.clientes.get(s).getOutputStream()));
                     out.writeUTF(output);
                     out.flush();
                 }
+                else {
+                    usersNotLogged.add(s);
+                }
             }
+            return usersNotLogged;
         } finally {
             l.unlock();
         }
