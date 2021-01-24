@@ -274,7 +274,7 @@ public class EstadoPartilhado {
         }
     }
     /**
-     * Método que atualiza lista de utilizadores recentes.
+     * Método que atualiza lista de utilizadores recentes com incrementação.
      *
      * @param  x    int da linha da zona.
      * @param  y    int da coluna da zona.
@@ -285,16 +285,44 @@ public class EstadoPartilhado {
         try {
             this.mapa[x][y]++;
 
-            for (User u : this.users.values()) {
-                if (u.getX() == x && u.getY() == y && !u.getUser().equals(user) && !this.users.get(user).wasRecentlyWith(u.getUser()) && !u.isInfected()) { // estão na mesma zona
-                    this.users.get(user).addRecent(u.getUser()); // vvv
-                    this.users.get(u.getUser()).addRecent(user); // update nos 2
-                }
-            }
+            update(user, x, y);
         } finally {
             wl.unlock();
         }
     }
+    /**
+     * Método que atualiza lista de utilizadores recentes sem incrementação.
+     *
+     * @param  zone char com a zona em que o utilizador se encontra.
+     * @param user  String com o nome do utilizador.
+     */
+    public void atualizaUsers(char zone, String user){
+        wl.lock();
+        try {
+            int x = getZonaX(zone);
+            int y = getZonaY(zone);
+
+            update(user, x, y);
+        } finally {
+            wl.unlock();
+        }
+    }
+    /**
+     * Método auxiliar de atualização da lista de utilizadores recentes.
+     *
+     * @param user  String com o nome do utilizador.
+     * @param  x    int da linha da zona.
+     * @param  y    int da coluna da zona.
+     */
+    private void update(String user, int x, int y) {
+        for (User u : this.users.values()) {
+            if (u.getX() == x && u.getY() == y && !u.getUser().equals(user) && !this.users.get(user).wasRecentlyWith(u.getUser()) && !u.isInfected()) { // estão na mesma zona
+                this.users.get(user).addRecent(u.getUser()); // vvv
+                this.users.get(u.getUser()).addRecent(user); // update nos 2
+            }
+        }
+    }
+
     /**
      * Método que atualiza estado de infeção de um utilizador.
      *

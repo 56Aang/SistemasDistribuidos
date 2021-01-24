@@ -257,22 +257,23 @@ public class ClientHandler implements Runnable {
         boolean state;
 
         state = args[1].equals("TRUE");
+        char zone = this.estado.getZone(this.estado.getUser(active_user).getX(),this.estado.getUser(active_user).getY());
 
         if (state) { // está infetado
             this.estado.setInfected(active_user, state);
             estado.notificaInfecao(this.active_user);
             out.writeUTF("USER INFECTED");
-            HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), true, false);
+            HistoricParser.addC(active_user, zone, true, false);
         } else {
             if (this.estado.getUser(active_user).isInfected()) { // mudou de infetado -> não infetado
                 this.estado.setInfected(active_user, state); // atualiza estado para não infetado
 
 
                 //verificar isto
-                this.estado.atualizaUsers(this.estado.getUser(active_user).getX(),this.estado.getUser(active_user).getY(),active_user); // atualiza lista de recently with
+                this.estado.atualizaUsers(zone,active_user); // atualiza lista de recently with
 
 
-                HistoricParser.addC(active_user, this.estado.getZone(this.estado.getUser(active_user).getX(), this.estado.getUser(active_user).getY()), false, true);
+                HistoricParser.addC(active_user, zone, false, true);
             }
             out.writeUTF("USER NOT INFECTED");
         }
