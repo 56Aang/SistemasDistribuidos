@@ -38,10 +38,10 @@ public class HistoricParser {
     /**
      * Método para atualizar estado do utilizador no ficheiro de logs.
      *
-     * @param user String com o nome do utilizador.
-     * @param zone   String com a zona do utilizador.
+     * @param user       String com o nome do utilizador.
+     * @param zone       String com a zona do utilizador.
      * @param isInfected boolean com o estado de infeção do utilizador.
-     * @param toDelete boolean com informação para apagar historico do utilizador.
+     * @param toDelete   boolean com informação para apagar historico do utilizador.
      */
     public static void addC(String user, char zone, boolean isInfected, boolean toDelete) {
         try {
@@ -131,11 +131,12 @@ public class HistoricParser {
 
         } catch (IOException exc) {
             System.out.println(exc.getMessage());
-        }finally {
+        } finally {
             l.unlock();
         }
         return null;
     }
+
     /**
      * Método para gerar nome aleatório para o ficheiro.
      *

@@ -9,15 +9,15 @@ import java.net.Socket;
  */
 public class Servidor {
 
-    public static void main (String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(12345);
         NotificationHandler nh = new NotificationHandler();
         EstadoPartilhado estado = new EstadoPartilhado(nh);
 
-        while(true){
+        while (true) {
             Socket socket = serverSocket.accept();
             System.out.println("Conexão aceite");
-            Thread worker = new Thread(new ClientHandler(socket,estado));
+            Thread worker = new Thread(new ClientHandler(socket, estado));
             worker.start();
         }
 

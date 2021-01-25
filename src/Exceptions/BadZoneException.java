@@ -1,11 +1,11 @@
 package Exceptions;
 
 public class BadZoneException extends Exception {
-    public BadZoneException(){
+    public BadZoneException() {
         super();
     }
 
-    public BadZoneException(String e){
+    public BadZoneException(String e) {
         super(e);
     }
 

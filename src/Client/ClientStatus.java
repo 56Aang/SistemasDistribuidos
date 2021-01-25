@@ -23,8 +23,10 @@ public class ClientStatus {
         this.exited = false;
         this.isInfected = false;
     }
+
     /**
      * Método para verificar se utilizador é especial.
+     *
      * @return boolean
      */
     public boolean isSpecial() {
@@ -35,6 +37,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para adicionar informação sobre especialidade ao utilizador.
      */
@@ -46,6 +49,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para adicionar informação de login.
      */
@@ -57,6 +61,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para adicionar informação de login.
      */
@@ -68,8 +73,10 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para verificar se utilizador se encontra logado.
+     *
      * @return boolean
      */
     public boolean getLogin() {
@@ -81,8 +88,10 @@ public class ClientStatus {
         }
 
     }
+
     /**
      * Método para verificar se utilizador se encontra à espera de resposta.
+     *
      * @return boolean
      */
     public boolean getWaiting() {
@@ -93,6 +102,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para retirar utilizador de espera.
      */
@@ -105,6 +115,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para utilizador esperar por resposta do Servidor.
      */
@@ -119,6 +130,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para adicionar informação que utilizador saiu.
      */
@@ -130,8 +142,10 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para verificar se utilizador pretende sair.
+     *
      * @return boolean
      */
     public boolean isExited() {
@@ -142,6 +156,7 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para adicionar informação de infeção.
      */
@@ -153,8 +168,10 @@ public class ClientStatus {
             l.unlock();
         }
     }
+
     /**
      * Método para verificar estado de infeção do utilizador.
+     *
      * @return boolean
      */
     public boolean getState() {

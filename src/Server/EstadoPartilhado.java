@@ -53,6 +53,7 @@ public class EstadoPartilhado {
         }
         this.nh = nh;
     }
+
     /**
      * Método que retorna tamanho do lado do mapa.
      *
@@ -66,6 +67,7 @@ public class EstadoPartilhado {
             rl.unlock();
         }
     }
+
     /**
      * Método que retorna mapa com a quantidade de utilizadores sob a forma de uma String.
      *
@@ -89,10 +91,11 @@ public class EstadoPartilhado {
             rl.unlock();
         }
     }
+
     /**
      * Método que altera a zona de um dado utilizador.
      *
-     * @param user String relativa ao utilizador.
+     * @param user    String relativa ao utilizador.
      * @param toWhere char relativa à localização à qual o utilizador se quer mudar.
      * @return String - "true" se foi feita com sucesso, uma zona caso essa tenha ficado vazia
      * @throws BadZoneException
@@ -124,6 +127,7 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que retorna o Mapa em formato de String.
      *
@@ -147,6 +151,7 @@ public class EstadoPartilhado {
         }
 
     }
+
     /**
      * Método que verifica se uma dada zona existe.
      *
@@ -162,13 +167,14 @@ public class EstadoPartilhado {
             rl.unlock();
         }
     }
+
     /**
      * Método que retorna um User dado o username de um utilizador.
      *
      * @param user String relativa ao código de um utilizador.
      * @return User
      */
-    public User getUser(String user){
+    public User getUser(String user) {
         rl.lock();
         try {
             return this.users.get(user);
@@ -176,11 +182,12 @@ public class EstadoPartilhado {
             rl.unlock();
         }
     }
+
     /**
      * Método valida login de um user.
      *
      * @param user String relativa ao código de um utilizador.
-     * @param pw String relativa à password de um utilizador.
+     * @param pw   String relativa à password de um utilizador.
      * @return boolean
      */
     public boolean logIn(String user, String pw) {
@@ -192,6 +199,7 @@ public class EstadoPartilhado {
         }
 
     }
+
     /**
      * Método que transforma coordenadas numa zona.
      *
@@ -207,6 +215,7 @@ public class EstadoPartilhado {
             rl.unlock();
         }
     }
+
     /**
      * Método que retorna a linha dada por uma zona.
      *
@@ -217,12 +226,13 @@ public class EstadoPartilhado {
         rl.lock();
         try {
             int i = (zona - 'A') / this.mapa.length;
-            if (i >= this.mapa.length) return -1;
+            if (i >= this.mapa.length || i < 0) return -1;
             return i;
         } finally {
             rl.unlock();
         }
     }
+
     /**
      * Método que retorna a coluna dada por uma zona.
      *
@@ -233,7 +243,7 @@ public class EstadoPartilhado {
         rl.lock();
         try {
             int j = (zona - 'A') % this.mapa.length;
-            if (j >= this.mapa.length) return -1;
+            if (j >= this.mapa.length || j < 0) return -1;
             return j;
         } finally {
             rl.unlock();
@@ -269,12 +279,13 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que atualiza lista de utilizadores recentes com incrementação.
      *
-     * @param  x    int da linha da zona.
-     * @param  y    int da coluna da zona.
-     * @param user  String com o nome do utilizador.
+     * @param x    int da linha da zona.
+     * @param y    int da coluna da zona.
+     * @param user String com o nome do utilizador.
      */
     public void atualizaUsers(int x, int y, String user) {
         wl.lock();
@@ -286,13 +297,14 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que atualiza lista de utilizadores recentes sem incrementação.
      *
-     * @param  zone char com a zona em que o utilizador se encontra.
-     * @param user  String com o nome do utilizador.
+     * @param zone char com a zona em que o utilizador se encontra.
+     * @param user String com o nome do utilizador.
      */
-    public void atualizaUsers(char zone, String user){
+    public void atualizaUsers(char zone, String user) {
         wl.lock();
         try {
             int x = getZonaX(zone);
@@ -303,12 +315,13 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método auxiliar de atualização da lista de utilizadores recentes.
      *
-     * @param user  String com o nome do utilizador.
-     * @param  x    int da linha da zona.
-     * @param  y    int da coluna da zona.
+     * @param user String com o nome do utilizador.
+     * @param x    int da linha da zona.
+     * @param y    int da coluna da zona.
      */
     private void update(String user, int x, int y) {
         for (User u : this.users.values()) {
@@ -334,6 +347,7 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que notifica utilizadores que estão em risco.
      *
@@ -347,7 +361,7 @@ public class EstadoPartilhado {
             List<String> usersNotLogged = this.nh.alertInfected(pInfected);
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
             LocalDateTime now = LocalDateTime.now();
-            String datetimenow = "["+ dtf.format(now)+"]";
+            String datetimenow = "[" + dtf.format(now) + "]";
             this.users.get(user).clearRecentlyWith();
             for (String s : pInfected) {
                 this.users.get(s).removeRecentlyWith(user);
@@ -359,6 +373,7 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que notifica utilizadores que uma localização encontra-se vazia.
      *
@@ -371,10 +386,10 @@ public class EstadoPartilhado {
             List<String> usersNotLogged;
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
             LocalDateTime now = LocalDateTime.now();
-            String datetimenow = "["+ dtf.format(now)+"]";
+            String datetimenow = "[" + dtf.format(now) + "]";
             if (this.usersNotify.containsKey(local)) {
                 usersNotLogged = this.nh.alertFreeZone(new ArrayList<>(this.usersNotify.get(local)), local);
-                for(String s : usersNotLogged){
+                for (String s : usersNotLogged) {
                     this.users.get(s).addMsg(datetimenow + ": ZONE " + local + " IS FREE");
                 }
             }
@@ -387,8 +402,8 @@ public class EstadoPartilhado {
     /**
      * Método que adiciona novo socket relativo a um utilizador.
      *
-     * @param user  String com o nome do utilizador.
-     * @param s Socket com o socket do utilizador.
+     * @param user String com o nome do utilizador.
+     * @param s    Socket com o socket do utilizador.
      */
     public void addNewHandler(String user, Socket s) {
         wl.lock();
@@ -398,10 +413,11 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que remove socket relativo a um utilizador.
      *
-     * @param user  String com o nome do utilizador.
+     * @param user String com o nome do utilizador.
      */
     public void removeHandler(String user) {
         wl.lock();
@@ -411,10 +427,11 @@ public class EstadoPartilhado {
             wl.unlock();
         }
     }
+
     /**
      * Método que adiciona utilizador para receber notificação de vaga.
      *
-     * @param user  String com o nome do utilizador.
+     * @param user String com o nome do utilizador.
      * @param zone char com a zona.
      * @return boolean
      * @throws BadZoneException
@@ -424,7 +441,7 @@ public class EstadoPartilhado {
         try {
             if (!isZoneValid(zone)) throw new BadZoneException();
 
-            this.usersNotify.putIfAbsent(zone,new ArrayList<>());
+            this.usersNotify.putIfAbsent(zone, new ArrayList<>());
             if (this.usersNotify.get(zone).contains(user)) return false;
             this.usersNotify.putIfAbsent(zone, new ArrayList<>());
             this.usersNotify.get(zone).add(user);
@@ -434,6 +451,7 @@ public class EstadoPartilhado {
         }
 
     }
+
     /**
      * Método que retorna a quantidade de utilizadores numa dada zona.
      *

@@ -32,6 +32,7 @@ public class User {
         this.msgs = new ArrayList<>();
         this.special = isSpecial;
     }
+
     /**
      * Método que altera as coordenadas de um utilizador.
      *
@@ -47,6 +48,7 @@ public class User {
             wl.unlock();
         }
     }
+
     /**
      * Método que verifica se o utilizador é especial.
      *
@@ -75,6 +77,7 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que adiciona informação sobre o estado da infeção de um utilizador.
      *
@@ -88,6 +91,7 @@ public class User {
             wl.unlock();
         }
     }
+
     /**
      * Método que verifica se o utilizador se encontra infetado.
      *
@@ -101,6 +105,7 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que apaga os utilizadores com quem esteve.
      */
@@ -112,6 +117,7 @@ public class User {
             wl.unlock();
         }
     }
+
     /**
      * Método que apaga um dado utilizador da lista dos utilizadores recentes.
      *
@@ -125,6 +131,7 @@ public class User {
             wl.unlock();
         }
     }
+
     /**
      * Método que adiciona um dado utilizador à lista dos utilizadores recentes.
      *
@@ -138,6 +145,7 @@ public class User {
             wl.unlock();
         }
     }
+
     /**
      * Método que devolve nome do utilizador.
      *
@@ -151,6 +159,7 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que devolve a lista de utilizadores com quem o cliente esteve recentemente.
      *
@@ -164,20 +173,22 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que verifica se o cliente esteve com um utilizador recentemente.
      *
      * @param user String com o nome do utilizador.
      * @return boolean
      */
-    public boolean wasRecentlyWith(String user){
+    public boolean wasRecentlyWith(String user) {
         rl.lock();
         try {
             return this.recentlyWith.contains(user);
-        }finally {
+        } finally {
             rl.unlock();
         }
     }
+
     /**
      * Método que devolve a linha onde o cliente se encontra.
      *
@@ -191,6 +202,7 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que devolve a coluna onde o cliente se encontra.
      *
@@ -204,6 +216,7 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que adiciona uma mensagem à lista de mensagens do utilizador.
      *
@@ -229,6 +242,7 @@ public class User {
             wl.unlock();
         }
     }
+
     /**
      * Método que verifica se o utilizador possui mensagens para ler.
      *
@@ -242,6 +256,7 @@ public class User {
             rl.unlock();
         }
     }
+
     /**
      * Método que devolve a lista de mensagens de um utilizador.
      *

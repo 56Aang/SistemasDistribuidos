@@ -24,11 +24,12 @@ public class NotificationHandler {
     public NotificationHandler() {
         this.clientes = new HashMap<>();
     }
+
     /**
      * Método que adiciona uma Socket a um utilizador.
      *
      * @param user String com o nome do utilizador.
-     * @param s Socket do utilizador.
+     * @param s    Socket do utilizador.
      */
     public void addClient(String user, Socket s) {
         l.lock();
@@ -38,6 +39,7 @@ public class NotificationHandler {
             l.unlock();
         }
     }
+
     /**
      * Método que remove uma Socket de um utilizador.
      *
@@ -51,6 +53,7 @@ public class NotificationHandler {
             l.unlock();
         }
     }
+
     /**
      * Método que notifica utilizadores em risco.
      *
@@ -63,7 +66,7 @@ public class NotificationHandler {
             List<String> usersNotLogged = new ArrayList<>();
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
             LocalDateTime now = LocalDateTime.now();
-            String datetimenow = "["+ dtf.format(now)+"]";
+            String datetimenow = "[" + dtf.format(now) + "]";
             for (String s : pInfected) {
                 if (this.clientes.containsKey(s)) {
                     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.clientes.get(s).getOutputStream()));
@@ -78,27 +81,27 @@ public class NotificationHandler {
             l.unlock();
         }
     }
+
     /**
      * Método que notifica utilizadores que uma zona ficou livre.
      *
      * @param usersToNotify Lista com os nomes dos utilizadores a notificar.
-     * @param a char com a zona.
+     * @param a             char com a zona.
      */
-    public List<String> alertFreeZone(List<String> usersToNotify,char a) throws IOException {
+    public List<String> alertFreeZone(List<String> usersToNotify, char a) throws IOException {
         l.lock();
         try {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
             LocalDateTime now = LocalDateTime.now();
-            String datetimenow = "["+ dtf.format(now)+"]";
+            String datetimenow = "[" + dtf.format(now) + "]";
             String output = datetimenow + ": ZONE " + a + " IS FREE";
             List<String> usersNotLogged = new ArrayList<>();
             for (String s : usersToNotify) {
-                if(this.clientes.containsKey(s)) {
+                if (this.clientes.containsKey(s)) {
                     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.clientes.get(s).getOutputStream()));
                     out.writeUTF(output);
                     out.flush();
-                }
-                else {
+                } else {
                     usersNotLogged.add(s);
                 }
             }

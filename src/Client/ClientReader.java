@@ -51,8 +51,7 @@ public class ClientReader implements Runnable {
                         System.out.println("MESSAGE FROM SERVER: " + msg);
                     }
                     this.status.setWaitingOFF();
-                }
-                else if (this.status.getWaiting()) { // está à espera de resposta
+                } else if (this.status.getWaiting()) { // está à espera de resposta
                     System.out.println(msg);
                     this.status.setWaitingOFF();
                 } else { // mensagens do servidor só

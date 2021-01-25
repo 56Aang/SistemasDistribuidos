@@ -32,7 +32,7 @@ public class ClientDrawer implements Runnable {
                 break;
 
             case 1: // está logged
-                if(this.status.isSpecial())
+                if (this.status.isSpecial())
                     System.out.println("1 - Atualizar Localização\n2 - Consultar Localização\n3 - Informar Estado Covid\n4 - Notificar Vaga\n5 - Descarregar Mapa\n6 - Consultar Mapa\n0 - Logout");
                 else
                     System.out.println("1 - Atualizar Localização\n2 - Consultar Localização\n3 - Informar Estado Covid\n4 - Notificar Vaga\n0 - Logout");
@@ -47,6 +47,7 @@ public class ClientDrawer implements Runnable {
 
     /**
      * Método para ler a decisão do cliente em cada menu.
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -65,8 +66,10 @@ public class ClientDrawer implements Runnable {
                 break;
         }
     }
+
     /**
      * Método para interpretar a decisão do cliente no menu 1.
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -90,6 +93,7 @@ public class ClientDrawer implements Runnable {
             }
         }
     }
+
     /**
      * Método para interpretar a decisão do cliente no menu 2.
      */
@@ -113,12 +117,12 @@ public class ClientDrawer implements Runnable {
                 menu_two_zoneConsultNotify();
                 break;
             case 5:
-                if(this.status.isSpecial()) {
+                if (this.status.isSpecial()) {
                     menu_two_mapDownload();
                     break;
                 }
             case 6:
-                if(this.status.isSpecial()){
+                if (this.status.isSpecial()) {
                     menu_two_consulta();
                     break;
                 }
@@ -147,8 +151,10 @@ public class ClientDrawer implements Runnable {
                 menu_three_output();
         }
     }
+
     /**
      * Método para fazer login.
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -158,7 +164,7 @@ public class ClientDrawer implements Runnable {
 
         System.out.print("Username: ");
         username = is.nextLine();
-        if(username.isEmpty()) return;
+        if (username.isEmpty()) return;
 
         System.out.print("Password: ");
         password = is.nextLine();
@@ -172,8 +178,10 @@ public class ClientDrawer implements Runnable {
         }
 
     }
+
     /**
      * Método para registar.
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -201,6 +209,7 @@ public class ClientDrawer implements Runnable {
         this.server_request(result);
 
     }
+
     /**
      * Método para dar logout.
      */
@@ -212,6 +221,7 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
+
     /**
      * Método para mudar a zona do utilizador.
      */
@@ -221,7 +231,7 @@ public class ClientDrawer implements Runnable {
             Scanner is = new Scanner(System.in);
             System.out.print("Zona: ");
             String loc = is.nextLine().toUpperCase();
-            if(loc.isEmpty()) return;
+            if (loc.isEmpty()) return;
             String result = String.join(";", "CHANGEZONE", loc);
             this.server_request(result);
 
@@ -229,22 +239,24 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
+
     /**
      * Método para consultar uma dada zona.
      */
-    public void menu_two_zoneConsult(){
+    public void menu_two_zoneConsult() {
         try {
             server_request("WRITEMAP");
             Scanner is = new Scanner(System.in);
             System.out.print("Zona: ");
             String loc = is.nextLine().toUpperCase();
-            if(loc.isEmpty()) return;
-            String result = String.join(";","CONSULTZONE",loc);
+            if (loc.isEmpty()) return;
+            String result = String.join(";", "CONSULTZONE", loc);
             this.server_request(result);
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
     }
+
     /**
      * Método para consultar o mapa completo.
      */
@@ -255,6 +267,7 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
+
     /**
      * Método para informar sobre estado de infeção.
      */
@@ -280,6 +293,7 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
+
     /**
      * Método para ativar notificação sobre uma dada localização.
      */
@@ -295,10 +309,11 @@ public class ClientDrawer implements Runnable {
             e.printStackTrace();
         }
     }
+
     /**
      * Método para fazer download do mapa com estatísticas.
      */
-    public void menu_two_mapDownload(){
+    public void menu_two_mapDownload() {
         try {
             server_request("DOWNLOADPLZ");
         } catch (InterruptedException | IOException e) {
@@ -308,6 +323,7 @@ public class ClientDrawer implements Runnable {
 
     /**
      * Método para enviar pedidos ao servidor.
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -319,6 +335,7 @@ public class ClientDrawer implements Runnable {
 
     /**
      * Método para ler um inteiro digitado pelo utilizador.
+     *
      * @return Valor inteiro introduzido pelo utilizador.
      */
     public int readOpt() {
@@ -339,6 +356,7 @@ public class ClientDrawer implements Runnable {
 
         return option;
     }
+
     /**
      * Método que é executado pela thread.
      */
