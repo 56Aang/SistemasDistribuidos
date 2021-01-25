@@ -51,13 +51,7 @@ public class ClientReader implements Runnable {
                         System.out.println("MESSAGE FROM SERVER: " + msg);
                     }
                     this.status.setWaitingOFF();
-                } //else if (this.status.getWaiting() && msgs) {
-                //  String[] aux = msg.split(";");
-                //  System.out.println(aux[0]);
-                //  msg = this.in.readUTF();
-                //  System.out.println("MESSAGE FROM SERVER: " + msg);
-                //  this.status.setWaitingOFF();
-                //  }
+                }
                 else if (this.status.getWaiting()) { // está à espera de resposta
                     System.out.println(msg);
                     this.status.setWaitingOFF();

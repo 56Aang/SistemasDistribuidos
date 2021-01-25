@@ -1,6 +1,5 @@
 package Server;
 
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,7 +13,6 @@ public class Servidor {
         ServerSocket serverSocket = new ServerSocket(12345);
         NotificationHandler nh = new NotificationHandler();
         EstadoPartilhado estado = new EstadoPartilhado(nh);
-
 
         while(true){
             Socket socket = serverSocket.accept();

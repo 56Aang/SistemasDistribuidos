@@ -1,8 +1,6 @@
 package Server;
 
-import Exceptions.BadZoneException;
-import Exceptions.InvalidUserException;
-import Exceptions.UserAlreadyExistingException;
+import Exceptions.*;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -109,9 +107,7 @@ public class EstadoPartilhado {
                 int xinit = this.users.get(user).getX();
                 int yinit = this.users.get(user).getY();
                 int i = getZonaX(toWhere);
-                //int i = (toWhere - 'A') / n;
                 int j = getZonaY(toWhere);
-                //int j = (toWhere - 'A') % n;
                 if (i >= n || j >= n || i < 0 || j < 0 || (xinit == i && yinit == j)) throw new BadZoneException();
                 this.users.get(user).moveTo(i, j);
                 atualizaUsers(i, j, user);

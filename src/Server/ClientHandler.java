@@ -1,10 +1,11 @@
 package Server;
 
-import Exceptions.BadZoneException;
-import Exceptions.InvalidUserException;
-import Exceptions.UserAlreadyExistingException;
-
-import java.io.*;
+import Exceptions.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
 /**
@@ -304,7 +305,11 @@ public class ClientHandler implements Runnable {
             String[] args = msg.split(";");
             System.out.println(msg);
             char zone = args[1].charAt(0);
-            if (this.estado.addNotifyUser(this.active_user, zone)) {
+            if(this.estado.zoneConsult(zone) == 0){
+                out.writeUTF("ZONE " + zone + " IS ALREADY EMPTY");
+                out.flush();
+            }
+            else if (this.estado.addNotifyUser(this.active_user, zone)) {
                 String output = "YOU WILL RECEIVE NOTIFICATION WHEN ZONE " + zone + " IS EMPTY";
                 out.writeUTF(output);
                 out.flush();
