@@ -87,7 +87,7 @@ public class ClientDrawer implements Runnable {
                 menu_one_signup();
                 break;
             default: {
-                System.out.println("Por favor insira um número das opeções dadas");
+                System.out.println("Por favor insira um número das opções dadas");
                 menu_one_output();
                 break;
             }
@@ -147,7 +147,7 @@ public class ClientDrawer implements Runnable {
                 menu_two_covidState();
                 break;
             default:
-                System.out.println("Por favor insira um número das opeções dadas");
+                System.out.println("Por favor insira um número das opções dadas");
                 menu_three_output();
         }
     }
